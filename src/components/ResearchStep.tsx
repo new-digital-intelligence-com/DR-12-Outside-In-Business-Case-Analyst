@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CompanyInput } from '@/lib/types';
 import { L1_INDUSTRIES, SAMPLE_INPUT, segmentsForIndustry } from '@/data/model';
 import { totalFteCalculated } from '@/lib/calc';
 import { formatEur, formatFte } from '@/lib/format';
-import type { ResearchResponse, ResearchStreamEvent } from '@/app/api/research/route';
+import type { CompanyCandidate, ResearchResponse, ResearchStreamEvent } from '@/app/api/research/route';
+
+type Phase = 'loading' | 'candidates' | 'form';
 
 export default function ResearchStep({
   input,
@@ -16,41 +18,48 @@ export default function ResearchStep({
   onBack: () => void;
   onNext: (input: CompanyInput) => void;
 }) {
-  const [loading, setLoading] = useState(true);
+  const [phase, setPhase] = useState<Phase>('loading');
+  const [candidates, setCandidates] = useState<CompanyCandidate[]>([]);
   const [note, setNote] = useState<string | null>(null);
   const [live, setLive] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [form, setForm] = useState<CompanyInput>(input);
 
-  useEffect(() => {
-    let cancelled = false;
+  // Guards against a stale request (e.g. picking a candidate while an earlier request is still
+  // in flight) applying its result after a newer one has already started.
+  const generation = useRef(0);
 
-    function applyResult(res: ResearchResponse) {
-      if (cancelled) return;
-      setNote(res.note);
-      setLive(res.live);
-      if (res.live) {
-        setForm((f) => ({
-          ...f,
-          revenueEur: res.revenueEur ?? f.revenueEur,
-          profitEur: res.profitEur ?? f.profitEur,
-          totalFte: res.totalFte ?? f.totalFte,
-          avgRevenuePerFte: res.avgRevenuePerFte ?? f.avgRevenuePerFte,
-          industryL1: res.industryL1 ?? f.industryL1,
-          industrySegment: res.industrySegment ?? f.industrySegment,
-          avgLoadedCostPerFte: res.avgLoadedCostPerFte ?? f.avgLoadedCostPerFte,
-          researched: true,
-        }));
-      }
+  function applyResult(res: ResearchResponse) {
+    setNote(res.note);
+    setLive(res.live);
+    if (res.live) {
+      setForm((f) => ({
+        ...f,
+        revenueEur: res.revenueEur ?? f.revenueEur,
+        profitEur: res.profitEur ?? f.profitEur,
+        totalFte: res.totalFte ?? f.totalFte,
+        avgRevenuePerFte: res.avgRevenuePerFte ?? f.avgRevenuePerFte,
+        industryL1: res.industryL1 ?? f.industryL1,
+        industrySegment: res.industrySegment ?? f.industrySegment,
+        avgLoadedCostPerFte: res.avgLoadedCostPerFte ?? f.avgLoadedCostPerFte,
+        researched: true,
+      }));
     }
+  }
+
+  function startResearch(confirmedCandidate?: CompanyCandidate) {
+    const myGeneration = ++generation.current;
+    setPhase('loading');
+    setCandidates([]);
+    setElapsedMs(0);
 
     async function run() {
-      let gotResult = false;
+      let settled = false;
       try {
         const res = await fetch('/api/research', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ companyName: input.companyName }),
+          body: JSON.stringify({ companyName: input.companyName, confirmedCandidate }),
         });
 
         if (!res.ok) {
@@ -72,33 +81,49 @@ export default function ResearchStep({
           for (const line of lines) {
             if (!line.trim()) continue;
             const event = JSON.parse(line) as ResearchStreamEvent;
-            if (cancelled) return;
-            if (event.type === 'heartbeat') setElapsedMs(event.elapsedMs);
-            else if (event.type === 'result') {
-              gotResult = true;
+            if (generation.current !== myGeneration) return;
+            if (event.type === 'heartbeat') {
+              setElapsedMs(event.elapsedMs);
+            } else if (event.type === 'candidates') {
+              settled = true;
+              setCandidates(event.data);
+              setPhase('candidates');
+            } else if (event.type === 'result') {
+              settled = true;
               applyResult(event.data);
+              setPhase('form');
             }
           }
         }
-        if (!gotResult && !cancelled) {
+        if (!settled && generation.current === myGeneration) {
           throw new Error('Stream ended without a result — connection likely dropped mid-request.');
         }
       } catch (err) {
-        if (!cancelled) {
+        if (generation.current === myGeneration) {
           const detail = err instanceof Error ? err.message : String(err);
           console.error('Research request failed:', err);
           setNote(`Research connector unavailable (${detail}) — enter figures manually below.`);
+          setLive(false);
+          setPhase('form');
         }
-      } finally {
-        if (!cancelled) setLoading(false);
       }
     }
 
     run();
+  }
+
+  // Kicks off the initial research request as soon as this step mounts. This intentionally
+  // updates state synchronously (via startResearch) rather than deferring to a callback — it's
+  // the same "fetch on mount" pattern as before, just factored out so candidate selection can
+  // re-trigger it later.
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
+  useEffect(() => {
+    startResearch();
     return () => {
-      cancelled = true;
+      generation.current++;
     };
   }, [input.companyName]);
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   function loadExample() {
     setForm((f) => ({
@@ -113,6 +138,13 @@ export default function ResearchStep({
     }));
   }
 
+  function skipCandidates() {
+    generation.current++;
+    setNote('Enter the figures below yourself.');
+    setLive(false);
+    setPhase('form');
+  }
+
   const segments = segmentsForIndustry(form.industryL1);
   const calcFte = totalFteCalculated(form);
   const costCalculated = form.revenueEur - form.profitEur;
@@ -123,7 +155,7 @@ export default function ResearchStep({
     <div className="mx-auto w-full max-w-2xl">
       <h2 className="text-lg font-semibold text-slate-900">Company profile — {input.companyName}</h2>
 
-      {loading ? (
+      {phase === 'loading' && (
         <div className="mt-6 rounded-lg border border-slate-200 bg-white px-4 py-4 text-sm text-slate-500">
           <div className="flex items-center gap-3">
             <Spinner /> Researching {input.companyName}…
@@ -135,7 +167,40 @@ export default function ResearchStep({
             </p>
           )}
         </div>
-      ) : (
+      )}
+
+      {phase === 'candidates' && (
+        <div className="mt-6">
+          <p className="text-sm text-slate-600">
+            Found {candidates.length} compan{candidates.length === 1 ? 'y' : 'ies'} matching &quot;{input.companyName}
+            &quot; — which one did you mean?
+          </p>
+          <div className="mt-4 space-y-2">
+            {candidates.map((c, i) => (
+              <button
+                key={i}
+                onClick={() => startResearch(c)}
+                className="block w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-left transition hover:border-indigo-400 hover:bg-indigo-50"
+              >
+                <p className="text-sm font-medium text-slate-900">{c.name}</p>
+                <p className="text-xs text-slate-500">
+                  {c.location}
+                  {c.domain ? ` · ${c.domain}` : ''}
+                </p>
+                <p className="mt-1 text-xs text-slate-600">{c.description}</p>
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={skipCandidates}
+            className="mt-4 text-sm font-medium text-slate-500 underline underline-offset-2 hover:text-slate-700"
+          >
+            None of these — I&apos;ll enter the figures myself
+          </button>
+        </div>
+      )}
+
+      {phase === 'form' && (
         <>
           {note && (
             <div

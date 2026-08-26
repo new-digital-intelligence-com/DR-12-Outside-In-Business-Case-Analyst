@@ -17,9 +17,33 @@ export interface ResearchResponse {
   note: string;
 }
 
+export interface CompanyCandidate {
+  name: string;
+  location: string;
+  domain: string | null;
+  description: string;
+}
+
 export type ResearchStreamEvent =
   | { type: 'heartbeat'; elapsedMs: number }
+  | { type: 'candidates'; data: CompanyCandidate[] }
   | { type: 'result'; data: ResearchResponse };
+
+const CandidateSchema = z.object({
+  candidates: z
+    .array(
+      z.object({
+        name: z.string().describe('Full/legal company name'),
+        location: z.string().describe('HQ city and country, or "Unknown"'),
+        domain: z.string().nullable().describe('Primary website domain (e.g. example.com), or null if unknown'),
+        description: z
+          .string()
+          .describe('One short sentence on what the company does — enough to distinguish it from similarly-named companies'),
+      })
+    )
+    .max(5)
+    .describe('Up to 5 distinct real companies that could plausibly match the given name. Empty if none found — never invent one.'),
+});
 
 const ResearchSchema = z.object({
   companyFound: z.boolean().describe('Whether you found a real, identifiable company matching this name'),
@@ -55,16 +79,92 @@ function nullFields() {
   } as const;
 }
 
+/** Drains pause_turn continuations from a server-tool turn, up to a hard cap, then forces a
+ * final no-tools wrap-up call if it still hasn't converged. max_uses on a tool only bounds ONE
+ * call's search budget — it resets on every re-call after a pause_turn, so without this cap an
+ * ambiguous/hard-to-resolve query can make the model loop for many minutes instead of ever
+ * settling on "I don't have enough to be confident." */
+async function resolveWithCap(
+  client: Anthropic,
+  messages: Anthropic.MessageParam[],
+  response: Anthropic.Message,
+  maxTokens: number,
+  maxUses: number,
+  maxIterations: number
+): Promise<Anthropic.Message> {
+  let iterations = 0;
+  while (response.stop_reason === 'pause_turn' && iterations < maxIterations) {
+    iterations++;
+    messages.push({ role: 'assistant', content: response.content });
+    response = await client.messages.create({
+      model: 'claude-opus-5',
+      max_tokens: maxTokens,
+      tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: maxUses }],
+      messages,
+    });
+  }
+  if (response.stop_reason === 'pause_turn') {
+    messages.push({ role: 'assistant', content: response.content });
+    messages.push({
+      role: 'user',
+      content: 'Stop searching now and summarize your best findings so far, being explicit about what remains uncertain.',
+    });
+    response = await client.messages.create({ model: 'claude-opus-5', max_tokens: maxTokens, messages });
+  }
+  return response;
+}
+
+function textOf(response: Anthropic.Message): string {
+  return response.content
+    .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+    .map((b) => b.text)
+    .join('\n');
+}
+
+/** Step 1: find candidate real companies matching a (possibly ambiguous) name, so the user can
+ * confirm which one they mean before we spend a full research pass on the wrong company. */
+async function identifyCompany(companyName: string): Promise<CompanyCandidate[]> {
+  const client = new Anthropic({ maxRetries: 5 });
+  const messages: Anthropic.MessageParam[] = [
+    {
+      role: 'user',
+      content: `Search the web to find real, identifiable companies matching the name "${companyName}". There may be multiple distinct companies with this or a similar name (different countries, industries, or legal entities) — list up to 5 of the most plausible distinct matches, each with enough detail (full name, HQ location, website domain, one-line description) to tell them apart. If you find no real company matching this name at all, return an empty list — do not invent one.`,
+    },
+  ];
+
+  let response = await client.messages.create({
+    model: 'claude-opus-5',
+    max_tokens: 2048,
+    tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 3 }],
+    messages,
+  });
+  response = await resolveWithCap(client, messages, response, 2048, 3, 2);
+
+  const extraction = await client.messages.parse({
+    model: 'claude-opus-5',
+    max_tokens: 1024,
+    messages: [
+      {
+        role: 'user',
+        content: `From this research, list the distinct candidate companies matching "${companyName}":\n\n${textOf(response)}`,
+      },
+    ],
+    output_config: { format: zodOutputFormat(CandidateSchema) },
+  });
+
+  return extraction.parsed_output?.candidates ?? [];
+}
+
 /**
- * Company research step. Two-call pattern: (1) let Claude research the company with the web
- * search tool and produce a free-text findings summary, (2) extract that summary into our
- * structured schema with a separate, tool-free call (Claude's structured-output mode doesn't mix
- * with an open-ended tool loop in a single call). This routinely takes 1-3 minutes, which exceeds
- * Cloudflare's ~100s "time to first response byte" proxy timeout (HTTP 524) if we just block and
- * return JSON at the end — so the caller streams newline-delimited JSON, emitting a heartbeat
- * every few seconds while it works and a final `result` event when done.
+ * Step 2: full financial/industry research on a specific, already-identified company. Two-call
+ * pattern: (1) let Claude research with the web search tool and produce a free-text findings
+ * summary, (2) extract that summary into our structured schema with a separate, tool-free call
+ * (Claude's structured-output mode doesn't mix with an open-ended tool loop in a single call).
+ * This routinely takes 1-3 minutes, which exceeds Cloudflare's ~100s "time to first response
+ * byte" proxy timeout (HTTP 524) if we just block and return JSON at the end — so the caller
+ * streams newline-delimited JSON (see POST below).
  */
-async function runResearch(companyName: string): Promise<ResearchResponse> {
+async function runResearch(companyName: string, identityHint: string | undefined): Promise<ResearchResponse> {
   if (!process.env.ANTHROPIC_API_KEY) {
     return {
       live: false,
@@ -86,11 +186,13 @@ async function runResearch(companyName: string): Promise<ResearchResponse> {
           .join(', ')}`
     ).join('\n');
 
+    const subject = identityHint ? `"${companyName}" (${identityHint})` : `"${companyName}"`;
+
     const researchMessages: Anthropic.MessageParam[] = [
       {
         role: 'user',
         content: [
-          `Research the company "${companyName}" using web search.`,
+          `Research the company ${subject} using web search.`,
           'Find (as of the most recent publicly available data): annual revenue, annual net profit, total employee headcount (FTE), and a fully-loaded annual cost per employee estimate appropriate for its country/industry.',
           'Also classify it into exactly one industry and one industry segment from this fixed taxonomy (use the exact spelling given):',
           taxonomy,
@@ -106,43 +208,9 @@ async function runResearch(companyName: string): Promise<ResearchResponse> {
       tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 5 }],
       messages: researchMessages,
     });
+    researchResponse = await resolveWithCap(client, researchMessages, researchResponse, 4096, 5, 4);
 
-    // Drain pause_turn continuations from the server-side search tool, up to a hard cap.
-    // max_uses on the tool only bounds ONE call's search budget — it resets every time we
-    // re-call after a pause_turn, so without this cap an ambiguous/hard-to-resolve company name
-    // can make the model loop for many minutes (observed: still going at 4+ minutes for one
-    // real query) instead of ever settling on "I can't find enough to be confident."
-    const MAX_PAUSE_ITERATIONS = 4;
-    let pauseIterations = 0;
-    while (researchResponse.stop_reason === 'pause_turn' && pauseIterations < MAX_PAUSE_ITERATIONS) {
-      pauseIterations++;
-      researchMessages.push({ role: 'assistant', content: researchResponse.content });
-      researchResponse = await client.messages.create({
-        model: 'claude-opus-5',
-        max_tokens: 4096,
-        tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 5 }],
-        messages: researchMessages,
-      });
-    }
-    if (researchResponse.stop_reason === 'pause_turn') {
-      // Still not converged after the cap — ask it to wrap up with whatever it has, no more tools.
-      researchMessages.push({ role: 'assistant', content: researchResponse.content });
-      researchMessages.push({
-        role: 'user',
-        content:
-          'Stop searching now and summarize your best findings so far, being explicit about what remains uncertain.',
-      });
-      researchResponse = await client.messages.create({
-        model: 'claude-opus-5',
-        max_tokens: 4096,
-        messages: researchMessages,
-      });
-    }
-
-    const findingsText = researchResponse.content
-      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-      .map((b) => b.text)
-      .join('\n');
+    const findingsText = textOf(researchResponse);
 
     const extraction = await client.messages.parse({
       model: 'claude-opus-5',
@@ -198,7 +266,8 @@ async function runResearch(companyName: string): Promise<ResearchResponse> {
 }
 
 export async function POST(req: NextRequest) {
-  const { companyName } = (await req.json()) as { companyName: string };
+  const body = (await req.json()) as { companyName: string; confirmedCandidate?: CompanyCandidate };
+  const { companyName, confirmedCandidate } = body;
 
   if (!companyName?.trim()) {
     return new Response(JSON.stringify({ error: 'companyName is required' }), {
@@ -229,8 +298,50 @@ export async function POST(req: NextRequest) {
       }, 8000);
 
       try {
-        const data = await runResearch(companyName);
-        send({ type: 'result', data });
+        if (!process.env.ANTHROPIC_API_KEY) {
+          send({
+            type: 'result',
+            data: {
+              live: false,
+              companyName,
+              ...nullFields(),
+              note: 'No research connector configured — enter the figures below yourself, or set ANTHROPIC_API_KEY to enable live research.',
+            },
+          });
+        } else if (confirmedCandidate) {
+          const hint = `full legal name: ${confirmedCandidate.name}; HQ: ${confirmedCandidate.location}; website: ${
+            confirmedCandidate.domain ?? 'unknown'
+          }; ${confirmedCandidate.description}`;
+          const data = await runResearch(companyName, hint);
+          send({ type: 'result', data });
+        } else {
+          const candidates = await identifyCompany(companyName);
+          if (candidates.length === 0) {
+            send({
+              type: 'result',
+              data: {
+                live: true,
+                companyName,
+                ...nullFields(),
+                note: `Couldn't confidently identify "${companyName}" — enter the figures below yourself.`,
+              },
+            });
+          } else {
+            send({ type: 'candidates', data: candidates });
+          }
+        }
+      } catch (error) {
+        console.error('Research API error:', error);
+        const message = error instanceof Anthropic.APIError ? error.message : 'Research request failed';
+        send({
+          type: 'result',
+          data: {
+            live: false,
+            companyName,
+            ...nullFields(),
+            note: `Research connector error: ${message}. Enter the figures below yourself.`,
+          },
+        });
       } finally {
         clearInterval(heartbeat);
         if (!closed) {
