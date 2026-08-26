@@ -137,14 +137,20 @@ const ANTHROPIC_CLIENT_OPTS = { maxRetries: 2, timeout: 90_000 } as const;
  * only stops *waiting* — it doesn't cancel the underlying call — but giving up just closes the
  * stream and the Worker invocation ends shortly after, so that's fine. */
 function withDeadline<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  console.log(`[withDeadline] arming ${label} for ${ms}ms at t=${Date.now()}`);
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`${label} took too long (over ${Math.round(ms / 1000)}s)`)), ms);
+    const timer = setTimeout(() => {
+      console.log(`[withDeadline] FIRED ${label} at t=${Date.now()}`);
+      reject(new Error(`${label} took too long (over ${Math.round(ms / 1000)}s)`));
+    }, ms);
     promise.then(
       (value) => {
+        console.log(`[withDeadline] ${label} settled (resolved) before deadline at t=${Date.now()}`);
         clearTimeout(timer);
         resolve(value);
       },
       (err) => {
+        console.log(`[withDeadline] ${label} settled (rejected) before deadline at t=${Date.now()}`);
         clearTimeout(timer);
         reject(err);
       }
@@ -192,13 +198,17 @@ async function runAgenticReport(
     reportTool,
   ];
 
-  let response = await client.messages.create({ model: 'claude-opus-5', max_tokens: maxTokens, tools, messages });
+  // Streaming, not .create() — a long non-streaming call that sits silent while Anthropic's
+  // server does multiple searches internally is far more exposed to an intermediate connection
+  // timeout (Cloudflare Worker <-> Anthropic) than one that's actively streaming bytes the whole
+  // time. This matches the same fix already applied to our own outbound stream to the browser.
+  let response = await client.messages.stream({ model: 'claude-opus-5', max_tokens: maxTokens, tools, messages }).finalMessage();
 
   let iterations = 0;
   while (response.stop_reason === 'pause_turn' && iterations < maxIterations) {
     iterations++;
     messages.push({ role: 'assistant', content: response.content });
-    response = await client.messages.create({ model: 'claude-opus-5', max_tokens: maxTokens, tools, messages });
+    response = await client.messages.stream({ model: 'claude-opus-5', max_tokens: maxTokens, tools, messages }).finalMessage();
   }
 
   const toolUse = response.content.find(
@@ -375,7 +385,7 @@ export async function POST(req: NextRequest) {
           const data = await withDeadline(runResearch(companyName, hint), 200_000, 'Research');
           send({ type: 'result', data });
         } else {
-          const candidates = await withDeadline(identifyCompany(companyName), 150_000, 'Company identification');
+          const candidates = await withDeadline(identifyCompany(companyName), 200_000, 'Company identification');
           if (candidates.length === 0) {
             send({
               type: 'result',
