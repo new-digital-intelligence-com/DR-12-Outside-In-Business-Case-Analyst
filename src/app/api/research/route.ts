@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
@@ -16,6 +16,10 @@ export interface ResearchResponse {
   avgLoadedCostPerFte: number | null;
   note: string;
 }
+
+export type ResearchStreamEvent =
+  | { type: 'heartbeat'; elapsedMs: number }
+  | { type: 'result'; data: ResearchResponse };
 
 const ResearchSchema = z.object({
   companyFound: z.boolean().describe('Whether you found a real, identifiable company matching this name'),
@@ -39,37 +43,41 @@ const ResearchSchema = z.object({
     ),
 });
 
+function nullFields() {
+  return {
+    revenueEur: null,
+    profitEur: null,
+    totalFte: null,
+    avgRevenuePerFte: null,
+    industryL1: null,
+    industrySegment: null,
+    avgLoadedCostPerFte: null,
+  } as const;
+}
+
 /**
  * Company research step. Two-call pattern: (1) let Claude research the company with the web
  * search tool and produce a free-text findings summary, (2) extract that summary into our
  * structured schema with a separate, tool-free call (Claude's structured-output mode doesn't mix
- * with an open-ended tool loop in a single call).
+ * with an open-ended tool loop in a single call). This routinely takes 1-3 minutes, which exceeds
+ * Cloudflare's ~100s "time to first response byte" proxy timeout (HTTP 524) if we just block and
+ * return JSON at the end — so the caller streams newline-delimited JSON, emitting a heartbeat
+ * every few seconds while it works and a final `result` event when done.
  */
-export async function POST(req: NextRequest) {
-  const { companyName } = (await req.json()) as { companyName: string };
-
-  if (!companyName?.trim()) {
-    return NextResponse.json({ error: 'companyName is required' }, { status: 400 });
-  }
-
+async function runResearch(companyName: string): Promise<ResearchResponse> {
   if (!process.env.ANTHROPIC_API_KEY) {
-    const response: ResearchResponse = {
+    return {
       live: false,
       companyName,
-      revenueEur: null,
-      profitEur: null,
-      totalFte: null,
-      avgRevenuePerFte: null,
-      industryL1: null,
-      industrySegment: null,
-      avgLoadedCostPerFte: null,
+      ...nullFields(),
       note: 'No research connector configured — enter the figures below yourself, or set ANTHROPIC_API_KEY to enable live research.',
     };
-    return NextResponse.json(response);
   }
 
   try {
-    const client = new Anthropic();
+    // Higher than the SDK default (2) — the research call is expensive enough in latency that
+    // it's worth riding out brief upstream overload (429/5xx) rather than failing fast.
+    const client = new Anthropic({ maxRetries: 5 });
 
     const taxonomy = L1_INDUSTRIES.map(
       (l1) =>
@@ -129,19 +137,12 @@ export async function POST(req: NextRequest) {
 
     const parsed = extraction.parsed_output;
     if (!parsed || !parsed.companyFound) {
-      const response: ResearchResponse = {
+      return {
         live: true,
         companyName,
-        revenueEur: null,
-        profitEur: null,
-        totalFte: null,
-        avgRevenuePerFte: null,
-        industryL1: null,
-        industrySegment: null,
-        avgLoadedCostPerFte: null,
+        ...nullFields(),
         note: `Couldn't confidently identify "${companyName}" — enter the figures below yourself.`,
       };
-      return NextResponse.json(response);
     }
 
     // Only trust industry/segment values that exactly match our taxonomy — otherwise leave blank
@@ -151,7 +152,7 @@ export async function POST(req: NextRequest) {
       (s) => s.l2Name === parsed.industrySegment && s.l1Name === parsed.industryL1
     );
 
-    const response: ResearchResponse = {
+    return {
       live: true,
       companyName,
       revenueEur: parsed.revenueEur,
@@ -163,22 +164,73 @@ export async function POST(req: NextRequest) {
       avgLoadedCostPerFte: parsed.avgLoadedCostPerFte,
       note: parsed.researchNotes,
     };
-    return NextResponse.json(response);
   } catch (error) {
     console.error('Research API error:', error);
     const message = error instanceof Anthropic.APIError ? error.message : 'Research request failed';
-    const response: ResearchResponse = {
+    return {
       live: false,
       companyName,
-      revenueEur: null,
-      profitEur: null,
-      totalFte: null,
-      avgRevenuePerFte: null,
-      industryL1: null,
-      industrySegment: null,
-      avgLoadedCostPerFte: null,
+      ...nullFields(),
       note: `Research connector error: ${message}. Enter the figures below yourself.`,
     };
-    return NextResponse.json(response, { status: 200 });
   }
+}
+
+export async function POST(req: NextRequest) {
+  const { companyName } = (await req.json()) as { companyName: string };
+
+  if (!companyName?.trim()) {
+    return new Response(JSON.stringify({ error: 'companyName is required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const encoder = new TextEncoder();
+  const startedAt = Date.now();
+
+  let heartbeat: ReturnType<typeof setInterval> | undefined;
+  let closed = false;
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (event: ResearchStreamEvent) => {
+        if (closed) return;
+        try {
+          controller.enqueue(encoder.encode(JSON.stringify(event) + '\n'));
+        } catch {
+          // Controller already closed (client disconnected) — stop trying.
+          closed = true;
+        }
+      };
+      heartbeat = setInterval(() => {
+        send({ type: 'heartbeat', elapsedMs: Date.now() - startedAt });
+      }, 8000);
+
+      try {
+        const data = await runResearch(companyName);
+        send({ type: 'result', data });
+      } finally {
+        clearInterval(heartbeat);
+        if (!closed) {
+          closed = true;
+          controller.close();
+        }
+      }
+    },
+    // Fires if the client disconnects mid-stream — stop the heartbeat so it doesn't keep
+    // trying to write to a dead controller until the (still-running) research call resolves.
+    cancel() {
+      closed = true;
+      clearInterval(heartbeat);
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'application/x-ndjson; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      'X-Content-Type-Options': 'nosniff',
+    },
+  });
 }

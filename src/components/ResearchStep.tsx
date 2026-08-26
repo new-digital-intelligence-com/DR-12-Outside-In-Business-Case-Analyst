@@ -5,7 +5,7 @@ import type { CompanyInput } from '@/lib/types';
 import { L1_INDUSTRIES, SAMPLE_INPUT, segmentsForIndustry } from '@/data/model';
 import { totalFteCalculated } from '@/lib/calc';
 import { formatEur, formatFte } from '@/lib/format';
-import type { ResearchResponse } from '@/app/api/research/route';
+import type { ResearchResponse, ResearchStreamEvent } from '@/app/api/research/route';
 
 export default function ResearchStep({
   input,
@@ -19,36 +19,66 @@ export default function ResearchStep({
   const [loading, setLoading] = useState(true);
   const [note, setNote] = useState<string | null>(null);
   const [live, setLive] = useState(false);
+  const [elapsedMs, setElapsedMs] = useState(0);
   const [form, setForm] = useState<CompanyInput>(input);
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/research', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ companyName: input.companyName }),
-    })
-      .then((r) => r.json())
-      .then((res: ResearchResponse) => {
-        if (cancelled) return;
-        setNote(res.note);
-        setLive(res.live);
-        if (res.live) {
-          setForm((f) => ({
-            ...f,
-            revenueEur: res.revenueEur ?? f.revenueEur,
-            profitEur: res.profitEur ?? f.profitEur,
-            totalFte: res.totalFte ?? f.totalFte,
-            avgRevenuePerFte: res.avgRevenuePerFte ?? f.avgRevenuePerFte,
-            industryL1: res.industryL1 ?? f.industryL1,
-            industrySegment: res.industrySegment ?? f.industrySegment,
-            avgLoadedCostPerFte: res.avgLoadedCostPerFte ?? f.avgLoadedCostPerFte,
-            researched: true,
-          }));
+
+    function applyResult(res: ResearchResponse) {
+      if (cancelled) return;
+      setNote(res.note);
+      setLive(res.live);
+      if (res.live) {
+        setForm((f) => ({
+          ...f,
+          revenueEur: res.revenueEur ?? f.revenueEur,
+          profitEur: res.profitEur ?? f.profitEur,
+          totalFte: res.totalFte ?? f.totalFte,
+          avgRevenuePerFte: res.avgRevenuePerFte ?? f.avgRevenuePerFte,
+          industryL1: res.industryL1 ?? f.industryL1,
+          industrySegment: res.industrySegment ?? f.industrySegment,
+          avgLoadedCostPerFte: res.avgLoadedCostPerFte ?? f.avgLoadedCostPerFte,
+          researched: true,
+        }));
+      }
+    }
+
+    async function run() {
+      try {
+        const res = await fetch('/api/research', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ companyName: input.companyName }),
+        });
+        if (!res.body) throw new Error('No response body');
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() ?? '';
+          for (const line of lines) {
+            if (!line.trim()) continue;
+            const event = JSON.parse(line) as ResearchStreamEvent;
+            if (cancelled) return;
+            if (event.type === 'heartbeat') setElapsedMs(event.elapsedMs);
+            else if (event.type === 'result') applyResult(event.data);
+          }
         }
-      })
-      .catch(() => setNote('Research connector unavailable — enter figures manually below.'))
-      .finally(() => !cancelled && setLoading(false));
+      } catch {
+        if (!cancelled) setNote('Research connector unavailable — enter figures manually below.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    run();
     return () => {
       cancelled = true;
     };
@@ -78,8 +108,16 @@ export default function ResearchStep({
       <h2 className="text-lg font-semibold text-slate-900">Company profile — {input.companyName}</h2>
 
       {loading ? (
-        <div className="mt-6 flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-4 text-sm text-slate-500">
-          <Spinner /> Researching {input.companyName}…
+        <div className="mt-6 rounded-lg border border-slate-200 bg-white px-4 py-4 text-sm text-slate-500">
+          <div className="flex items-center gap-3">
+            <Spinner /> Researching {input.companyName}…
+          </div>
+          {elapsedMs > 5000 && (
+            <p className="mt-2 text-xs text-slate-400">
+              Still working ({Math.round(elapsedMs / 1000)}s) — this can take up to a few minutes, since it
+              involves live web search.
+            </p>
+          )}
         </div>
       ) : (
         <>
