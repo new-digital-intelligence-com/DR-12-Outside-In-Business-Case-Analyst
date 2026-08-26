@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* This app uses a fixed light theme by design; no dark-mode override. */
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #report-root,
+  #report-root * {
+    visibility: visible;
+  }
+  #report-root {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    background: #fff !important;
+  }
+  .print-hide {
+    display: none !important;
+  }
+  section {
+    break-inside: avoid;
+  }
+}
