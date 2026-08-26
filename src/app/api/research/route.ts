@@ -29,59 +29,113 @@ export type ResearchStreamEvent =
   | { type: 'candidates'; data: CompanyCandidate[] }
   | { type: 'result'; data: ResearchResponse };
 
+// Custom "report" tools the model calls directly (as a normal tool_use, alongside web_search) to
+// hand back structured results as its final action — this is the same pattern a native multi-tool
+// Claude conversation uses. It replaces a separate extraction call in the common case: no second
+// round-trip, no separate model, just one agentic turn. Fallback below still exists for the rare
+// case the model doesn't call it.
+const CANDIDATE_REPORT_TOOL: Anthropic.Tool = {
+  name: 'report_candidates',
+  description:
+    'Report the distinct real companies you found matching the search name. Call this once, as your final action, with your best findings so far — do not wait until you are exhaustively certain.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      candidates: {
+        type: 'array',
+        maxItems: 5,
+        items: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', description: 'Full/legal company name' },
+            location: { type: 'string', description: 'HQ city and country, or "Unknown"' },
+            domain: { type: 'string', description: 'Primary website domain (e.g. example.com), or "" if unknown' },
+            description: {
+              type: 'string',
+              description: 'One short sentence on what the company does — enough to distinguish it from similarly-named companies',
+            },
+          },
+          required: ['name', 'location', 'domain', 'description'],
+        },
+        description: 'Up to 5 distinct real companies that could plausibly match the given name. Empty array if none found — never invent one.',
+      },
+    },
+    required: ['candidates'],
+  },
+};
+
+const RESEARCH_REPORT_TOOL: Anthropic.Tool = {
+  name: 'report_research',
+  description: 'Report your structured research findings about the company. Call this once, as your final action.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      companyFound: { type: 'boolean', description: 'Whether you found a real, identifiable company matching this name' },
+      revenueEur: { type: ['number', 'null'], description: 'Most recent annual revenue in EUR, or null if unknown/private' },
+      profitEur: { type: ['number', 'null'], description: 'Most recent annual net profit in EUR, or null if unknown' },
+      totalFte: { type: ['number', 'null'], description: 'Total headcount (FTE), or null if unknown' },
+      avgRevenuePerFte: { type: ['number', 'null'], description: 'Revenue divided by FTE, in EUR, or null if either is unknown' },
+      industryL1: { type: ['string', 'null'], description: 'Best-matching top-level industry from the provided list, or null' },
+      industrySegment: {
+        type: ['string', 'null'],
+        description: 'Best-matching industry segment from the provided list (must belong to industryL1), or null',
+      },
+      avgLoadedCostPerFte: {
+        type: ['number', 'null'],
+        description: 'Estimated fully-loaded annual cost per employee in EUR (salary + overhead), or null',
+      },
+      researchNotes: {
+        type: 'string',
+        description:
+          'Brief note on sources and confidence — say plainly which figures are reported/sourced vs. estimated, and why (e.g. private company, no disclosed financials).',
+      },
+    },
+    required: [
+      'companyFound',
+      'revenueEur',
+      'profitEur',
+      'totalFte',
+      'avgRevenuePerFte',
+      'industryL1',
+      'industrySegment',
+      'avgLoadedCostPerFte',
+      'researchNotes',
+    ],
+  },
+};
+
+// Fallback-path schemas — only used on the rare turn where the model answers in plain text
+// instead of calling the report tool, extracted with a fast, cheap model (no search needed).
 const CandidateSchema = z.object({
   candidates: z
     .array(
       z.object({
-        name: z.string().describe('Full/legal company name'),
-        location: z.string().describe('HQ city and country, or "Unknown"'),
-        domain: z.string().nullable().describe('Primary website domain (e.g. example.com), or null if unknown'),
-        description: z
-          .string()
-          .describe('One short sentence on what the company does — enough to distinguish it from similarly-named companies'),
+        name: z.string(),
+        location: z.string(),
+        domain: z.string().nullable(),
+        description: z.string(),
       })
     )
-    .max(5)
-    .describe('Up to 5 distinct real companies that could plausibly match the given name. Empty if none found — never invent one.'),
+    .max(5),
 });
 
 const ResearchSchema = z.object({
-  companyFound: z.boolean().describe('Whether you found a real, identifiable company matching this name'),
-  revenueEur: z.number().nullable().describe('Most recent annual revenue in EUR, or null if unknown/private'),
-  profitEur: z.number().nullable().describe('Most recent annual net profit in EUR, or null if unknown'),
-  totalFte: z.number().nullable().describe('Total headcount (FTE), or null if unknown'),
-  avgRevenuePerFte: z.number().nullable().describe('Revenue divided by FTE, in EUR, or null if either is unknown'),
-  industryL1: z.string().nullable().describe('Best-matching top-level industry from the provided list, or null'),
-  industrySegment: z
-    .string()
-    .nullable()
-    .describe('Best-matching industry segment from the provided list (must belong to industryL1), or null'),
-  avgLoadedCostPerFte: z
-    .number()
-    .nullable()
-    .describe('Estimated fully-loaded annual cost per employee in EUR (salary + overhead), or null'),
-  researchNotes: z
-    .string()
-    .describe(
-      'Brief note on sources and confidence — say plainly which figures are reported/sourced vs. estimated, and why (e.g. private company, no disclosed financials).'
-    ),
+  companyFound: z.boolean(),
+  revenueEur: z.number().nullable(),
+  profitEur: z.number().nullable(),
+  totalFte: z.number().nullable(),
+  avgRevenuePerFte: z.number().nullable(),
+  industryL1: z.string().nullable(),
+  industrySegment: z.string().nullable(),
+  avgLoadedCostPerFte: z.number().nullable(),
+  researchNotes: z.string(),
 });
 
-// Bounds each individual Anthropic call: default timeout is 10 minutes, and per the SDK docs
-// "timeouts are retried — wall-clock can reach timeout × (max_retries+1)". Left at the defaults,
-// one call under sustained upstream instability could legitimately take up to an hour before
-// giving up (observed in practice: a single request still running after 10+ minutes).
-// 45s was too tight — legitimately-slow-but-fine individual calls (a real web-search turn can
-// take over a minute) were being killed and retried by our own timeout, not by any actual hang
-// (observed: "Request timed out" after ~180s = 45s x 4 attempts, on a call that would have
-// succeeded given more like 60-90s). 90s gives real calls room; the outer withDeadline() below
-// is the actual backstop against runaway total latency, so retries here don't need to be tight.
 const ANTHROPIC_CLIENT_OPTS = { maxRetries: 2, timeout: 90_000 } as const;
 
-/** Races a promise against a hard deadline so the user is never left waiting indefinitely,
- * regardless of how many retries or pause_turn iterations compound underneath it. Note: this
- * only stops *waiting* for the underlying call — it doesn't cancel it — but that's fine here
- * since giving up just means the stream closes and the Worker invocation ends shortly after. */
+/** Races a promise against a hard deadline so the user is never left waiting indefinitely. This
+ * only stops *waiting* — it doesn't cancel the underlying call — but giving up just closes the
+ * stream and the Worker invocation ends shortly after, so that's fine. */
 function withDeadline<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error(`${label} took too long (over ${Math.round(ms / 1000)}s)`)), ms);
@@ -110,48 +164,6 @@ function nullFields() {
   } as const;
 }
 
-/** Drains pause_turn continuations from a server-tool turn, up to a hard cap, then forces a
- * final no-tools wrap-up call if it still hasn't converged. max_uses on a tool only bounds ONE
- * call's search budget — it resets on every re-call after a pause_turn, so without this cap an
- * ambiguous/hard-to-resolve query can make the model loop for many minutes instead of ever
- * settling on "I don't have enough to be confident." */
-async function resolveWithCap(
-  client: Anthropic,
-  messages: Anthropic.MessageParam[],
-  response: Anthropic.Message,
-  maxTokens: number,
-  maxUses: number,
-  maxIterations: number,
-  effort: 'low' | 'medium'
-): Promise<Anthropic.Message> {
-  let iterations = 0;
-  while (response.stop_reason === 'pause_turn' && iterations < maxIterations) {
-    iterations++;
-    messages.push({ role: 'assistant', content: response.content });
-    response = await client.messages.create({
-      model: 'claude-opus-5',
-      max_tokens: maxTokens,
-      output_config: { effort },
-      tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: maxUses }],
-      messages,
-    });
-  }
-  if (response.stop_reason === 'pause_turn') {
-    messages.push({ role: 'assistant', content: response.content });
-    messages.push({
-      role: 'user',
-      content: 'Stop searching now and summarize your best findings so far, being explicit about what remains uncertain.',
-    });
-    response = await client.messages.create({
-      model: 'claude-opus-5',
-      max_tokens: maxTokens,
-      output_config: { effort },
-      messages,
-    });
-  }
-  return response;
-}
-
 function textOf(response: Anthropic.Message): string {
   return response.content
     .filter((b): b is Anthropic.TextBlock => b.type === 'text')
@@ -159,67 +171,72 @@ function textOf(response: Anthropic.Message): string {
     .join('\n');
 }
 
-async function searchForCandidates(
-  companyName: string,
-  effort: 'low' | 'medium' | 'high'
-): Promise<CompanyCandidate[]> {
-  const client = new Anthropic(ANTHROPIC_CLIENT_OPTS);
-  const messages: Anthropic.MessageParam[] = [
-    {
-      role: 'user',
-      content: `Search the web to find real, identifiable companies matching the name "${companyName}". There may be multiple distinct companies with this or a similar name (different countries, industries, or legal entities) — list up to 5 of the most plausible distinct matches, each with enough detail (full name, HQ location, website domain, one-line description) to tell them apart. If you find no real company matching this name at all, return an empty list — do not invent one.`,
-    },
+/**
+ * Runs one agentic turn with web_search plus a custom "report" tool, the same shape a native
+ * multi-tool Claude conversation uses — search as needed, then call the report tool as the final
+ * action. No output_config.effort override: this mirrors default conversational behavior rather
+ * than artificially throttling quality/depth. Drains pause_turn (the server-tool loop needing a
+ * fresh call to continue) up to a hard cap so an unresolved search can't run away.
+ */
+async function runAgenticReport(
+  client: Anthropic,
+  userPrompt: string,
+  reportTool: Anthropic.Tool,
+  maxTokens: number,
+  maxUses: number,
+  maxIterations: number
+): Promise<{ toolInput: unknown; findingsText: string }> {
+  const messages: Anthropic.MessageParam[] = [{ role: 'user', content: userPrompt }];
+  const tools: Anthropic.Messages.ToolUnion[] = [
+    { type: 'web_search_20260209', name: 'web_search', max_uses: maxUses },
+    reportTool,
   ];
 
-  let response = await client.messages.create({
-    model: 'claude-opus-5',
-    max_tokens: 2048,
-    output_config: { effort },
-    tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 3 }],
-    messages,
-  });
-  response = await resolveWithCap(client, messages, response, 2048, 3, 2, effort === 'high' ? 'medium' : effort);
+  let response = await client.messages.create({ model: 'claude-opus-5', max_tokens: maxTokens, tools, messages });
 
-  // Haiku 4.5 — this is pure text-to-JSON extraction from an already-gathered summary, no web
-  // search or deep reasoning needed, so a much cheaper/faster model does just as well. (Haiku
-  // 4.5 doesn't support output_config.effort, so it's omitted here — format-only.)
+  let iterations = 0;
+  while (response.stop_reason === 'pause_turn' && iterations < maxIterations) {
+    iterations++;
+    messages.push({ role: 'assistant', content: response.content });
+    response = await client.messages.create({ model: 'claude-opus-5', max_tokens: maxTokens, tools, messages });
+  }
+
+  const toolUse = response.content.find(
+    (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use' && b.name === reportTool.name
+  );
+
+  return { toolInput: toolUse?.input, findingsText: textOf(response) };
+}
+
+/** Step 1: find candidate real companies matching a (possibly ambiguous) name, so the user can
+ * confirm which one they mean before we spend a full research pass on the wrong company. */
+async function identifyCompany(companyName: string): Promise<CompanyCandidate[]> {
+  const client = new Anthropic(ANTHROPIC_CLIENT_OPTS);
+  const prompt = `Search the web to find real, identifiable companies matching the name "${companyName}". There may be multiple distinct companies with this or a similar name (different countries, industries, or legal entities) — call report_candidates with up to 5 of the most plausible distinct matches, each with enough detail (full name, HQ location, website domain, one-line description) to tell them apart. If you find no real company matching this name at all, call report_candidates with an empty list — do not invent one.`;
+
+  const { toolInput, findingsText } = await runAgenticReport(client, prompt, CANDIDATE_REPORT_TOOL, 2048, 3, 3);
+
+  const direct = toolInput as { candidates?: CompanyCandidate[] } | undefined;
+  if (direct?.candidates) return direct.candidates;
+
+  // Fallback: the model answered in plain text instead of calling the tool. Extract with a fast,
+  // cheap model from what it already found — no new search needed.
   const extraction = await client.messages.parse({
     model: 'claude-haiku-4-5',
     max_tokens: 1024,
     messages: [
-      {
-        role: 'user',
-        content: `From this research, list the distinct candidate companies matching "${companyName}":\n\n${textOf(response)}`,
-      },
+      { role: 'user', content: `From this research, list the distinct candidate companies matching "${companyName}":\n\n${findingsText}` },
     ],
     output_config: { format: zodOutputFormat(CandidateSchema) },
   });
-
   return extraction.parsed_output?.candidates ?? [];
 }
 
-/** Step 1: find candidate real companies matching a (possibly ambiguous) name, so the user can
- * confirm which one they mean before we spend a full research pass on the wrong company.
- *
- * Two-tier: try 'low' effort first — fast (~30-40s observed, comparable to a direct Claude
- * conversation) and correct for the common case of an unambiguous, findable company. Only fall
- * back to a slower, more thorough 'high'-effort attempt when the fast pass finds nothing — verified
- * 'low' effort alone can miss a real match for a genuinely hard/obscure name that 'high' finds
- * reliably, but most company names aren't that hard, so most users shouldn't pay for the slow path. */
-async function identifyCompany(companyName: string): Promise<CompanyCandidate[]> {
-  const fast = await searchForCandidates(companyName, 'low');
-  if (fast.length > 0) return fast;
-  return searchForCandidates(companyName, 'high');
-}
-
 /**
- * Step 2: full financial/industry research on a specific, already-identified company. Two-call
- * pattern: (1) let Claude research with the web search tool and produce a free-text findings
- * summary, (2) extract that summary into our structured schema with a separate, tool-free call
- * (Claude's structured-output mode doesn't mix with an open-ended tool loop in a single call).
- * This routinely takes 1-3 minutes, which exceeds Cloudflare's ~100s "time to first response
- * byte" proxy timeout (HTTP 524) if we just block and return JSON at the end — so the caller
- * streams newline-delimited JSON (see POST below).
+ * Step 2: full financial/industry research on a specific, already-identified company. This
+ * routinely takes 30-100s+, which can exceed Cloudflare's ~100s "time to first response byte"
+ * proxy timeout (HTTP 524) if we just block and return JSON at the end — so the caller streams
+ * newline-delimited JSON (see POST below).
  */
 async function runResearch(companyName: string, identityHint: string | undefined): Promise<ResearchResponse> {
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -243,51 +260,31 @@ async function runResearch(companyName: string, identityHint: string | undefined
 
     const subject = identityHint ? `"${companyName}" (${identityHint})` : `"${companyName}"`;
 
-    const researchMessages: Anthropic.MessageParam[] = [
-      {
-        role: 'user',
-        content: [
-          `Research the company ${subject} using web search.`,
-          'Find (as of the most recent publicly available data): annual revenue, annual net profit, total employee headcount (FTE), and a fully-loaded annual cost per employee estimate appropriate for its country/industry.',
-          'Also classify it into exactly one industry and one industry segment from this fixed taxonomy (use the exact spelling given):',
-          taxonomy,
-          '',
-          'If the company is private and does not disclose financials, say so explicitly and give your best order-of-magnitude estimate only where you have a reasonable basis (e.g. from employee count, industry benchmarks, or press coverage) — do not invent precise-looking figures. Cite what you found and what is estimated.',
-        ].join('\n'),
-      },
-    ];
+    const prompt = [
+      `Research the company ${subject} using web search.`,
+      'Find (as of the most recent publicly available data): annual revenue, annual net profit, total employee headcount (FTE), and a fully-loaded annual cost per employee estimate appropriate for its country/industry.',
+      'Also classify it into exactly one industry and one industry segment from this fixed taxonomy (use the exact spelling given):',
+      taxonomy,
+      '',
+      'If the company is private and does not disclose financials, say so explicitly and give your best order-of-magnitude estimate only where you have a reasonable basis (e.g. from employee count, industry benchmarks, or press coverage) — do not invent precise-looking figures.',
+      'When you are done, call report_research with your findings, citing in researchNotes what is reported/sourced vs. estimated.',
+    ].join('\n');
 
-    // 'medium' effort — real research/reasoning is needed here (unlike identification), but
-    // default 'high' effort was a major contributor to multi-minute latency for a task that a
-    // direct Claude conversation does in well under a minute; medium keeps decent depth while
-    // meaningfully cutting search round-trips and thinking time.
-    let researchResponse = await client.messages.create({
-      model: 'claude-opus-5',
-      max_tokens: 4096,
-      output_config: { effort: 'medium' },
-      tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 5 }],
-      messages: researchMessages,
-    });
-    researchResponse = await resolveWithCap(client, researchMessages, researchResponse, 4096, 5, 4, 'medium');
+    const { toolInput, findingsText } = await runAgenticReport(client, prompt, RESEARCH_REPORT_TOOL, 4096, 5, 4);
 
-    const findingsText = textOf(researchResponse);
+    let parsed = toolInput as z.infer<typeof ResearchSchema> | undefined;
 
-    // Haiku 4.5 — pure text-to-JSON extraction (including taxonomy matching from the already-
-    // classified findings text), no search or deep reasoning needed. No output_config.effort:
-    // Haiku 4.5 doesn't support it.
-    const extraction = await client.messages.parse({
-      model: 'claude-haiku-4-5',
-      max_tokens: 2048,
-      messages: [
-        {
-          role: 'user',
-          content: `Extract structured data from this research summary about "${companyName}":\n\n${findingsText}`,
-        },
-      ],
-      output_config: { format: zodOutputFormat(ResearchSchema) },
-    });
+    if (!parsed) {
+      // Fallback: the model answered in plain text instead of calling the tool.
+      const extraction = await client.messages.parse({
+        model: 'claude-haiku-4-5',
+        max_tokens: 2048,
+        messages: [{ role: 'user', content: `Extract structured data from this research summary about "${companyName}":\n\n${findingsText}` }],
+        output_config: { format: zodOutputFormat(ResearchSchema) },
+      });
+      parsed = extraction.parsed_output ?? undefined;
+    }
 
-    const parsed = extraction.parsed_output;
     if (!parsed || !parsed.companyFound) {
       return {
         live: true,
@@ -375,12 +372,10 @@ export async function POST(req: NextRequest) {
           const hint = `full legal name: ${confirmedCandidate.name}; HQ: ${confirmedCandidate.location}; website: ${
             confirmedCandidate.domain ?? 'unknown'
           }; ${confirmedCandidate.description}`;
-          const data = await withDeadline(runResearch(companyName, hint), 300_000, 'Research');
+          const data = await withDeadline(runResearch(companyName, hint), 200_000, 'Research');
           send({ type: 'result', data });
         } else {
-          // 300s: identifyCompany can run a fast 'low'-effort pass then fall back to a slower
-          // 'high'-effort one, so the deadline needs room for both, not just one.
-          const candidates = await withDeadline(identifyCompany(companyName), 300_000, 'Company identification');
+          const candidates = await withDeadline(identifyCompany(companyName), 150_000, 'Company identification');
           if (candidates.length === 0) {
             send({
               type: 'result',
