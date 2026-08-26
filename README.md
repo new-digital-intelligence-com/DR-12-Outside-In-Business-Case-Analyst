@@ -48,10 +48,10 @@ npx wrangler secret put ANTHROPIC_API_KEY
 ```
 
 (paste the key when prompted, or pipe it in non-interactively). Re-run this if the key changes;
-`cf:deploy` does not re-upload secrets. `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, once you have one, needs to
-go in `wrangler.jsonc` under `vars` instead (it's a build-time public value, not a secret) — or set
-it before running `cf:deploy` so it gets baked into the client bundle. Also add the deployed URL as
-an **Authorized JavaScript origin** in the Google Cloud Console OAuth client once that's set up.
+`cf:deploy` does not re-upload secrets. `NEXT_PUBLIC_GOOGLE_CLIENT_ID` is different — Next.js inlines
+`NEXT_PUBLIC_*` values into the client bundle at **build time**, so it just needs to be set in
+`.env.local` before running `cf:deploy` (no separate Cloudflare-side config needed). Also add the
+deployed URL as an **Authorized JavaScript origin** in the Google Cloud Console OAuth client.
 
 **Windows note:** `@opennextjs/cloudflare` warns it isn't fully tested on Windows. In practice, a
 leftover `workerd.exe` process from a previous `preview`/`dev` session can hold a lock on
