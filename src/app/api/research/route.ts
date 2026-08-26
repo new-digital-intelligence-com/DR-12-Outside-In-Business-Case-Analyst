@@ -70,9 +70,13 @@ const ResearchSchema = z.object({
 // Bounds each individual Anthropic call: default timeout is 10 minutes, and per the SDK docs
 // "timeouts are retried — wall-clock can reach timeout × (max_retries+1)". Left at the defaults,
 // one call under sustained upstream instability could legitimately take up to an hour before
-// giving up (observed in practice: a single request still running after 10+ minutes). A shorter
-// per-attempt timeout with fewer retries bounds that to a few minutes worst case per call.
-const ANTHROPIC_CLIENT_OPTS = { maxRetries: 3, timeout: 45_000 } as const;
+// giving up (observed in practice: a single request still running after 10+ minutes).
+// 45s was too tight — legitimately-slow-but-fine individual calls (a real web-search turn can
+// take over a minute) were being killed and retried by our own timeout, not by any actual hang
+// (observed: "Request timed out" after ~180s = 45s x 4 attempts, on a call that would have
+// succeeded given more like 60-90s). 90s gives real calls room; the outer withDeadline() below
+// is the actual backstop against runaway total latency, so retries here don't need to be tight.
+const ANTHROPIC_CLIENT_OPTS = { maxRetries: 2, timeout: 90_000 } as const;
 
 /** Races a promise against a hard deadline so the user is never left waiting indefinitely,
  * regardless of how many retries or pause_turn iterations compound underneath it. Note: this
@@ -117,7 +121,8 @@ async function resolveWithCap(
   response: Anthropic.Message,
   maxTokens: number,
   maxUses: number,
-  maxIterations: number
+  maxIterations: number,
+  effort: 'low' | 'medium'
 ): Promise<Anthropic.Message> {
   let iterations = 0;
   while (response.stop_reason === 'pause_turn' && iterations < maxIterations) {
@@ -126,6 +131,7 @@ async function resolveWithCap(
     response = await client.messages.create({
       model: 'claude-opus-5',
       max_tokens: maxTokens,
+      output_config: { effort },
       tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: maxUses }],
       messages,
     });
@@ -136,7 +142,12 @@ async function resolveWithCap(
       role: 'user',
       content: 'Stop searching now and summarize your best findings so far, being explicit about what remains uncertain.',
     });
-    response = await client.messages.create({ model: 'claude-opus-5', max_tokens: maxTokens, messages });
+    response = await client.messages.create({
+      model: 'claude-opus-5',
+      max_tokens: maxTokens,
+      output_config: { effort },
+      messages,
+    });
   }
   return response;
 }
@@ -148,9 +159,10 @@ function textOf(response: Anthropic.Message): string {
     .join('\n');
 }
 
-/** Step 1: find candidate real companies matching a (possibly ambiguous) name, so the user can
- * confirm which one they mean before we spend a full research pass on the wrong company. */
-async function identifyCompany(companyName: string): Promise<CompanyCandidate[]> {
+async function searchForCandidates(
+  companyName: string,
+  effort: 'low' | 'medium' | 'high'
+): Promise<CompanyCandidate[]> {
   const client = new Anthropic(ANTHROPIC_CLIENT_OPTS);
   const messages: Anthropic.MessageParam[] = [
     {
@@ -162,13 +174,17 @@ async function identifyCompany(companyName: string): Promise<CompanyCandidate[]>
   let response = await client.messages.create({
     model: 'claude-opus-5',
     max_tokens: 2048,
+    output_config: { effort },
     tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 3 }],
     messages,
   });
-  response = await resolveWithCap(client, messages, response, 2048, 3, 2);
+  response = await resolveWithCap(client, messages, response, 2048, 3, 2, effort === 'high' ? 'medium' : effort);
 
+  // Haiku 4.5 — this is pure text-to-JSON extraction from an already-gathered summary, no web
+  // search or deep reasoning needed, so a much cheaper/faster model does just as well. (Haiku
+  // 4.5 doesn't support output_config.effort, so it's omitted here — format-only.)
   const extraction = await client.messages.parse({
-    model: 'claude-opus-5',
+    model: 'claude-haiku-4-5',
     max_tokens: 1024,
     messages: [
       {
@@ -180,6 +196,20 @@ async function identifyCompany(companyName: string): Promise<CompanyCandidate[]>
   });
 
   return extraction.parsed_output?.candidates ?? [];
+}
+
+/** Step 1: find candidate real companies matching a (possibly ambiguous) name, so the user can
+ * confirm which one they mean before we spend a full research pass on the wrong company.
+ *
+ * Two-tier: try 'low' effort first — fast (~30-40s observed, comparable to a direct Claude
+ * conversation) and correct for the common case of an unambiguous, findable company. Only fall
+ * back to a slower, more thorough 'high'-effort attempt when the fast pass finds nothing — verified
+ * 'low' effort alone can miss a real match for a genuinely hard/obscure name that 'high' finds
+ * reliably, but most company names aren't that hard, so most users shouldn't pay for the slow path. */
+async function identifyCompany(companyName: string): Promise<CompanyCandidate[]> {
+  const fast = await searchForCandidates(companyName, 'low');
+  if (fast.length > 0) return fast;
+  return searchForCandidates(companyName, 'high');
 }
 
 /**
@@ -227,18 +257,26 @@ async function runResearch(companyName: string, identityHint: string | undefined
       },
     ];
 
+    // 'medium' effort — real research/reasoning is needed here (unlike identification), but
+    // default 'high' effort was a major contributor to multi-minute latency for a task that a
+    // direct Claude conversation does in well under a minute; medium keeps decent depth while
+    // meaningfully cutting search round-trips and thinking time.
     let researchResponse = await client.messages.create({
       model: 'claude-opus-5',
       max_tokens: 4096,
+      output_config: { effort: 'medium' },
       tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 5 }],
       messages: researchMessages,
     });
-    researchResponse = await resolveWithCap(client, researchMessages, researchResponse, 4096, 5, 4);
+    researchResponse = await resolveWithCap(client, researchMessages, researchResponse, 4096, 5, 4, 'medium');
 
     const findingsText = textOf(researchResponse);
 
+    // Haiku 4.5 — pure text-to-JSON extraction (including taxonomy matching from the already-
+    // classified findings text), no search or deep reasoning needed. No output_config.effort:
+    // Haiku 4.5 doesn't support it.
     const extraction = await client.messages.parse({
-      model: 'claude-opus-5',
+      model: 'claude-haiku-4-5',
       max_tokens: 2048,
       messages: [
         {
@@ -280,7 +318,7 @@ async function runResearch(companyName: string, identityHint: string | undefined
     };
   } catch (error) {
     console.error('Research API error:', error);
-    const message = error instanceof Anthropic.APIError ? error.message : 'Research request failed';
+    const message = error instanceof Error ? error.message : 'Research request failed';
     return {
       live: false,
       companyName,
@@ -340,7 +378,9 @@ export async function POST(req: NextRequest) {
           const data = await withDeadline(runResearch(companyName, hint), 300_000, 'Research');
           send({ type: 'result', data });
         } else {
-          const candidates = await withDeadline(identifyCompany(companyName), 240_000, 'Company identification');
+          // 300s: identifyCompany can run a fast 'low'-effort pass then fall back to a slower
+          // 'high'-effort one, so the deadline needs room for both, not just one.
+          const candidates = await withDeadline(identifyCompany(companyName), 300_000, 'Company identification');
           if (candidates.length === 0) {
             send({
               type: 'result',
@@ -357,7 +397,7 @@ export async function POST(req: NextRequest) {
         }
       } catch (error) {
         console.error('Research API error:', error);
-        const message = error instanceof Anthropic.APIError ? error.message : 'Research request failed';
+        const message = error instanceof Error ? error.message : 'Research request failed';
         send({
           type: 'result',
           data: {
