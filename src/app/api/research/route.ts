@@ -107,13 +107,34 @@ async function runResearch(companyName: string): Promise<ResearchResponse> {
       messages: researchMessages,
     });
 
-    // Drain any pause_turn continuations from the server-side search tool.
-    while (researchResponse.stop_reason === 'pause_turn') {
+    // Drain pause_turn continuations from the server-side search tool, up to a hard cap.
+    // max_uses on the tool only bounds ONE call's search budget — it resets every time we
+    // re-call after a pause_turn, so without this cap an ambiguous/hard-to-resolve company name
+    // can make the model loop for many minutes (observed: still going at 4+ minutes for one
+    // real query) instead of ever settling on "I can't find enough to be confident."
+    const MAX_PAUSE_ITERATIONS = 4;
+    let pauseIterations = 0;
+    while (researchResponse.stop_reason === 'pause_turn' && pauseIterations < MAX_PAUSE_ITERATIONS) {
+      pauseIterations++;
       researchMessages.push({ role: 'assistant', content: researchResponse.content });
       researchResponse = await client.messages.create({
         model: 'claude-opus-5',
         max_tokens: 4096,
         tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 5 }],
+        messages: researchMessages,
+      });
+    }
+    if (researchResponse.stop_reason === 'pause_turn') {
+      // Still not converged after the cap — ask it to wrap up with whatever it has, no more tools.
+      researchMessages.push({ role: 'assistant', content: researchResponse.content });
+      researchMessages.push({
+        role: 'user',
+        content:
+          'Stop searching now and summarize your best findings so far, being explicit about what remains uncertain.',
+      });
+      researchResponse = await client.messages.create({
+        model: 'claude-opus-5',
+        max_tokens: 4096,
         messages: researchMessages,
       });
     }

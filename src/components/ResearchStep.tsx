@@ -45,13 +45,19 @@ export default function ResearchStep({
     }
 
     async function run() {
+      let gotResult = false;
       try {
         const res = await fetch('/api/research', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ companyName: input.companyName }),
         });
-        if (!res.body) throw new Error('No response body');
+
+        if (!res.ok) {
+          const bodyText = await res.text().catch(() => '');
+          throw new Error(`Server returned ${res.status} ${res.statusText}${bodyText ? `: ${bodyText.slice(0, 200)}` : ''}`);
+        }
+        if (!res.body) throw new Error('Response had no body');
 
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
@@ -68,11 +74,21 @@ export default function ResearchStep({
             const event = JSON.parse(line) as ResearchStreamEvent;
             if (cancelled) return;
             if (event.type === 'heartbeat') setElapsedMs(event.elapsedMs);
-            else if (event.type === 'result') applyResult(event.data);
+            else if (event.type === 'result') {
+              gotResult = true;
+              applyResult(event.data);
+            }
           }
         }
-      } catch {
-        if (!cancelled) setNote('Research connector unavailable — enter figures manually below.');
+        if (!gotResult && !cancelled) {
+          throw new Error('Stream ended without a result — connection likely dropped mid-request.');
+        }
+      } catch (err) {
+        if (!cancelled) {
+          const detail = err instanceof Error ? err.message : String(err);
+          console.error('Research request failed:', err);
+          setNote(`Research connector unavailable (${detail}) — enter figures manually below.`);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
