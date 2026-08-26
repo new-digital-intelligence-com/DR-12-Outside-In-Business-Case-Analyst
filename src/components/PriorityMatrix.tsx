@@ -54,7 +54,7 @@ export default function PriorityMatrix({ functions }: { functions: FunctionResul
           </span>
         ))}
       </div>
-      <ResponsiveContainer width="100%" height={520}>
+      <ResponsiveContainer width="100%" height={1040}>
         <ScatterChart margin={{ top: 10, right: 20, bottom: 30, left: 10 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
           <XAxis
@@ -102,7 +102,7 @@ export default function PriorityMatrix({ functions }: { functions: FunctionResul
               fillOpacity={0.75}
               isAnimationActive={false}
             >
-              <LabelList dataKey="name" position="top" width={110} style={{ fontSize: 8, fill: '#475569' }} />
+              <LabelList dataKey="name" position="top" width={170} style={{ fontSize: 8, fill: '#475569' }} />
             </Scatter>
           ))}
         </ScatterChart>
