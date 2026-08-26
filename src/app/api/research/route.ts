@@ -67,6 +67,33 @@ const ResearchSchema = z.object({
     ),
 });
 
+// Bounds each individual Anthropic call: default timeout is 10 minutes, and per the SDK docs
+// "timeouts are retried — wall-clock can reach timeout × (max_retries+1)". Left at the defaults,
+// one call under sustained upstream instability could legitimately take up to an hour before
+// giving up (observed in practice: a single request still running after 10+ minutes). A shorter
+// per-attempt timeout with fewer retries bounds that to a few minutes worst case per call.
+const ANTHROPIC_CLIENT_OPTS = { maxRetries: 3, timeout: 45_000 } as const;
+
+/** Races a promise against a hard deadline so the user is never left waiting indefinitely,
+ * regardless of how many retries or pause_turn iterations compound underneath it. Note: this
+ * only stops *waiting* for the underlying call — it doesn't cancel it — but that's fine here
+ * since giving up just means the stream closes and the Worker invocation ends shortly after. */
+function withDeadline<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${label} took too long (over ${Math.round(ms / 1000)}s)`)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
+
 function nullFields() {
   return {
     revenueEur: null,
@@ -124,7 +151,7 @@ function textOf(response: Anthropic.Message): string {
 /** Step 1: find candidate real companies matching a (possibly ambiguous) name, so the user can
  * confirm which one they mean before we spend a full research pass on the wrong company. */
 async function identifyCompany(companyName: string): Promise<CompanyCandidate[]> {
-  const client = new Anthropic({ maxRetries: 5 });
+  const client = new Anthropic(ANTHROPIC_CLIENT_OPTS);
   const messages: Anthropic.MessageParam[] = [
     {
       role: 'user',
@@ -175,9 +202,7 @@ async function runResearch(companyName: string, identityHint: string | undefined
   }
 
   try {
-    // Higher than the SDK default (2) — the research call is expensive enough in latency that
-    // it's worth riding out brief upstream overload (429/5xx) rather than failing fast.
-    const client = new Anthropic({ maxRetries: 5 });
+    const client = new Anthropic(ANTHROPIC_CLIENT_OPTS);
 
     const taxonomy = L1_INDUSTRIES.map(
       (l1) =>
@@ -312,10 +337,10 @@ export async function POST(req: NextRequest) {
           const hint = `full legal name: ${confirmedCandidate.name}; HQ: ${confirmedCandidate.location}; website: ${
             confirmedCandidate.domain ?? 'unknown'
           }; ${confirmedCandidate.description}`;
-          const data = await runResearch(companyName, hint);
+          const data = await withDeadline(runResearch(companyName, hint), 300_000, 'Research');
           send({ type: 'result', data });
         } else {
-          const candidates = await identifyCompany(companyName);
+          const candidates = await withDeadline(identifyCompany(companyName), 240_000, 'Company identification');
           if (candidates.length === 0) {
             send({
               type: 'result',
