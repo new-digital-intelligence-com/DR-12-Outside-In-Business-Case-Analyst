@@ -87,10 +87,13 @@ Two integrations are real but need a credential only you can provide:
    Console API key — separate from a Claude.ai/Claude Code subscription). Without it, the step
    honestly reports "not connected" and lets the user fill in figures themselves (with a "load
    illustrative example data" shortcut for demos).
-2. **PDF delivery** — "Download PDF" uses the browser's native print-to-PDF (`window.print()` with
-   a print stylesheet in `globals.css`), so no fragile client-side canvas/color-parsing dependency.
-   Emailing the PDF to the user isn't wired up — that needs an email-sending credential (SMTP or
-   an API like SendGrid/Gmail API).
+2. **PDF delivery** — "Download PDF" opens a dialog (`src/components/PdfDeliveryDialog.tsx`) with
+   two independent switches: "Download now" (the browser's native print-to-PDF via `window.print()`
+   with a print stylesheet in `globals.css` — no fragile client-side canvas/color-parsing
+   dependency) and "Send via email", which sends via the Gmail API as the signed-in Google account
+   (`src/app/api/send-report/route.ts`, `src/lib/gmail.ts`). Needs `GOOGLE_CLIENT_ID`,
+   `GOOGLE_CLIENT_SECRET` and `GMAIL_REFRESH_TOKEN` — see "Send via email (Gmail API)" below. Without
+   them, that path honestly reports "not configured" instead of pretending to send.
 
 ## Google Sign-In (real, optional)
 
@@ -110,6 +113,33 @@ broken button — the rest of the app works identically either way. Signing in o
 user's name/email/picture (from the Google ID token, decoded client-side — not verified against
 Google's servers) for display in the header; it doesn't gate any part of the app, and there's no
 backend session.
+
+## Send via email (Gmail API)
+
+Emailing the PDF delivery notice uses the Gmail API (`gmail.send` scope) as your own Google
+account — chosen over SMTP because Cloudflare Workers has no reliable raw-socket SMTP support.
+Every email is sent from whichever account completes the consent flow below (no separate "from"
+address). One-time setup:
+
+1. Reuses the same OAuth client as `NEXT_PUBLIC_GOOGLE_CLIENT_ID` above. In
+   [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials), open
+   that client and add a **redirect URI**:
+   `https://outside-in-assessment.new-digital-intelligence.workers.dev/api/oauth/gmail/callback`
+   (add `http://localhost:3000/api/oauth/gmail/callback` too if testing locally).
+2. In [APIs & Services → Library](https://console.cloud.google.com/apis/library), enable the
+   **Gmail API** on the same project.
+3. Set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` (`.env.local` for local dev, `wrangler secret
+   put` for the deployed Worker — see above).
+4. Visit this URL, signed in as the account that should send the emails, and approve:
+   ```
+   https://accounts.google.com/o/oauth2/v2/auth?client_id=<GOOGLE_CLIENT_ID>&redirect_uri=<REDIRECT_URI>&response_type=code&scope=https://www.googleapis.com/auth/gmail.send&access_type=offline&prompt=consent
+   ```
+5. Google redirects to `/api/oauth/gmail/callback`, which exchanges the code and displays a
+   refresh token once. Copy it into `GMAIL_REFRESH_TOKEN` (`.env.local` and `wrangler secret put
+   GMAIL_REFRESH_TOKEN`), then discard the page — it isn't stored anywhere.
+
+Without all three of `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GMAIL_REFRESH_TOKEN`, the
+"send via email" switch fails with an honest "not configured" error.
 
 ## Data model
 
