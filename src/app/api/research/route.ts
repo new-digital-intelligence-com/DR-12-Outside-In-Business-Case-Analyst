@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import { L1_INDUSTRIES, INDUSTRY_LIST } from '@/data/model';
+import { findAlpbachCompany } from '@/data/alpbach';
 
 export interface ResearchResponse {
   live: boolean;
@@ -368,7 +369,24 @@ export async function POST(req: NextRequest) {
       }, 8000);
 
       try {
-        if (!process.env.ANTHROPIC_API_KEY) {
+        const alpbach = findAlpbachCompany(companyName);
+        if (alpbach) {
+          send({
+            type: 'result',
+            data: {
+              live: true,
+              companyName,
+              revenueEur: alpbach.revenueEur,
+              profitEur: alpbach.profitEur,
+              totalFte: alpbach.totalFte,
+              avgRevenuePerFte: alpbach.avgRevenuePerFte,
+              industryL1: alpbach.industryL1,
+              industrySegment: alpbach.industrySegment,
+              avgLoadedCostPerFte: alpbach.avgLoadedCostPerFte,
+              note: `Pre-researched company profile (${alpbach.companyName}, Alpbach Festival participant list).`,
+            },
+          });
+        } else if (!process.env.ANTHROPIC_API_KEY) {
           send({
             type: 'result',
             data: {

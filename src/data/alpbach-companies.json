@@ -1,0 +1,752 @@
+[
+  {
+    "companyName": "Alstom Transport Austria GmbH",
+    "revenueEur": 180000000,
+    "profitEur": 5000000,
+    "totalFte": 700,
+    "avgRevenuePerFte": 450000,
+    "industryL1": "Manufacturing",
+    "industrySegment": "Automotive & Transportation Equipment",
+    "avgLoadedCostPerFte": 85000
+  },
+  {
+    "companyName": "Automobil- und Touringclub Tirol",
+    "revenueEur": 15000000,
+    "profitEur": 500000,
+    "totalFte": 150,
+    "avgRevenuePerFte": 150000,
+    "industryL1": "Government & Public Sector",
+    "industrySegment": "International & Non-Profit Organizations",
+    "avgLoadedCostPerFte": 75000
+  },
+  {
+    "companyName": "aws - Austria Wirtschaftsservice GmbH",
+    "revenueEur": 130000000,
+    "profitEur": 5000000,
+    "totalFte": 400,
+    "avgRevenuePerFte": 400000,
+    "industryL1": "Financial Services",
+    "industrySegment": "Banking & Consumer Finance",
+    "avgLoadedCostPerFte": 110000
+  },
+  {
+    "companyName": "B&C Gruppe",
+    "revenueEur": 4636000000,
+    "profitEur": 300000000,
+    "totalFte": 16000,
+    "avgRevenuePerFte": 400000,
+    "industryL1": "Financial Services",
+    "industrySegment": "Asset & Wealth Management",
+    "avgLoadedCostPerFte": 110000
+  },
+  {
+    "companyName": "BMW Group",
+    "revenueEur": 142380000000,
+    "profitEur": 7678000000,
+    "totalFte": 159104,
+    "avgRevenuePerFte": 450000,
+    "industryL1": "Manufacturing",
+    "industrySegment": "Automotive & Transportation Equipment",
+    "avgLoadedCostPerFte": 85000
+  },
+  {
+    "companyName": "British American Tobacco (Austria) GmbH",
+    "revenueEur": 40000000,
+    "profitEur": 3045038,
+    "totalFte": 50,
+    "avgRevenuePerFte": 450000,
+    "industryL1": "Manufacturing",
+    "industrySegment": "Food, Beverage & Tobacco",
+    "avgLoadedCostPerFte": 85000
+  },
+  {
+    "companyName": "Brutkasten Media GmbH",
+    "revenueEur": 3200000,
+    "profitEur": 100000,
+    "totalFte": 35,
+    "avgRevenuePerFte": 300000,
+    "industryL1": "Information, Media & Telecommunications",
+    "industrySegment": "Media, Entertainment & Publishing",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "Bundesministerium für Bildung",
+    "revenueEur": 12000000000,
+    "profitEur": 0,
+    "totalFte": 46784,
+    "avgRevenuePerFte": 150000,
+    "industryL1": "Government & Public Sector",
+    "industrySegment": "Public Education",
+    "avgLoadedCostPerFte": 75000
+  },
+  {
+    "companyName": "Burgenland Energie AG",
+    "revenueEur": 336700000,
+    "profitEur": 42400000,
+    "totalFte": 859,
+    "avgRevenuePerFte": 700000,
+    "industryL1": "Energy & Utilities",
+    "industrySegment": "Renewable Energy",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "CANCOM Austria AG",
+    "revenueEur": 520000000,
+    "profitEur": 15000000,
+    "totalFte": 1650,
+    "avgRevenuePerFte": 300000,
+    "industryL1": "Information, Media & Telecommunications",
+    "industrySegment": "IT Services & Consulting",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "Canon Austria GmbH",
+    "revenueEur": 114130000,
+    "profitEur": 3000000,
+    "totalFte": 350,
+    "avgRevenuePerFte": 400000,
+    "industryL1": "Wholesale & Retail Trade",
+    "industrySegment": "Wholesale & Distribution",
+    "avgLoadedCostPerFte": 60000
+  },
+  {
+    "companyName": "Casinos Austria AG",
+    "revenueEur": 1482890000,
+    "profitEur": 182890000,
+    "totalFte": 3112,
+    "avgRevenuePerFte": 150000,
+    "industryL1": "Consumer Services, Hospitality & Education",
+    "industrySegment": "Travel, Leisure & Recreation",
+    "avgLoadedCostPerFte": 55000
+  },
+  {
+    "companyName": "Emmi Österreich",
+    "revenueEur": 40000000,
+    "profitEur": 1500000,
+    "totalFte": 50,
+    "avgRevenuePerFte": 450000,
+    "industryL1": "Manufacturing",
+    "industrySegment": "Food, Beverage & Tobacco",
+    "avgLoadedCostPerFte": 85000
+  },
+  {
+    "companyName": "Energie AG",
+    "revenueEur": 2842000000,
+    "profitEur": 298000000,
+    "totalFte": 5200,
+    "avgRevenuePerFte": 700000,
+    "industryL1": "Energy & Utilities",
+    "industrySegment": "Electricity & Gas Networks",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "Energie AG Oberösterreich",
+    "revenueEur": 2842000000,
+    "profitEur": 298000000,
+    "totalFte": 5200,
+    "avgRevenuePerFte": 700000,
+    "industryL1": "Energy & Utilities",
+    "industrySegment": "Electricity & Gas Networks",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "Enery",
+    "revenueEur": 150000000,
+    "profitEur": 10000000,
+    "totalFte": 288,
+    "avgRevenuePerFte": 700000,
+    "industryL1": "Energy & Utilities",
+    "industrySegment": "Renewable Energy",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "Enery Development GmbH",
+    "revenueEur": 150000000,
+    "profitEur": 10000000,
+    "totalFte": 288,
+    "avgRevenuePerFte": 700000,
+    "industryL1": "Energy & Utilities",
+    "industrySegment": "Renewable Energy",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "EVN AG",
+    "revenueEur": 3256600000,
+    "profitEur": 471700000,
+    "totalFte": 7300,
+    "avgRevenuePerFte": 700000,
+    "industryL1": "Energy & Utilities",
+    "industrySegment": "Electricity & Gas Networks",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "Federal Ministry of Defence",
+    "revenueEur": 4391000000,
+    "profitEur": 0,
+    "totalFte": 22000,
+    "avgRevenuePerFte": 150000,
+    "industryL1": "Government & Public Sector",
+    "industrySegment": "Defense & Armed Forces",
+    "avgLoadedCostPerFte": 75000
+  },
+  {
+    "companyName": "Frequentis AG",
+    "revenueEur": 480300000,
+    "profitEur": 23500000,
+    "totalFte": 2400,
+    "avgRevenuePerFte": 300000,
+    "industryL1": "Information, Media & Telecommunications",
+    "industrySegment": "Software & SaaS",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "Future Health Lab",
+    "revenueEur": 2000000,
+    "profitEur": 0,
+    "totalFte": 15,
+    "avgRevenuePerFte": 150000,
+    "industryL1": "Government & Public Sector",
+    "industrySegment": "International & Non-Profit Organizations",
+    "avgLoadedCostPerFte": 75000
+  },
+  {
+    "companyName": "GPK",
+    "revenueEur": 3000000,
+    "profitEur": 200000,
+    "totalFte": 20,
+    "avgRevenuePerFte": 200000,
+    "industryL1": "Professional & Business Services",
+    "industrySegment": "Advertising, Marketing & Market Research",
+    "avgLoadedCostPerFte": 90000
+  },
+  {
+    "companyName": "Great Place To Work Austria",
+    "revenueEur": 5000000,
+    "profitEur": 500000,
+    "totalFte": 20,
+    "avgRevenuePerFte": 200000,
+    "industryL1": "Professional & Business Services",
+    "industrySegment": "Staffing, HR & Business Support Services",
+    "avgLoadedCostPerFte": 90000
+  },
+  {
+    "companyName": "Greiner Packaging International GmbH",
+    "revenueEur": 875000000,
+    "profitEur": 30000000,
+    "totalFte": 4933,
+    "avgRevenuePerFte": 450000,
+    "industryL1": "Manufacturing",
+    "industrySegment": "Chemicals & Materials",
+    "avgLoadedCostPerFte": 85000
+  },
+  {
+    "companyName": "Humanocare GmbH",
+    "revenueEur": 60000000,
+    "profitEur": 2000000,
+    "totalFte": 20,
+    "avgRevenuePerFte": 120000,
+    "industryL1": "Healthcare & Social Care",
+    "industrySegment": "Long-Term Care, Home Care & Social Services",
+    "avgLoadedCostPerFte": 65000
+  },
+  {
+    "companyName": "IBM",
+    "revenueEur": 58000000000,
+    "profitEur": 5600000000,
+    "totalFte": 270000,
+    "avgRevenuePerFte": 300000,
+    "industryL1": "Information, Media & Telecommunications",
+    "industrySegment": "IT Services & Consulting",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "iSi Group",
+    "revenueEur": 400000000,
+    "profitEur": 25000000,
+    "totalFte": 4000,
+    "avgRevenuePerFte": 450000,
+    "industryL1": "Manufacturing",
+    "industrySegment": "Metals & Metal Products",
+    "avgLoadedCostPerFte": 85000
+  },
+  {
+    "companyName": "KONTEXT Institut für Klimafragen",
+    "revenueEur": 1500000,
+    "profitEur": 0,
+    "totalFte": 15,
+    "avgRevenuePerFte": 150000,
+    "industryL1": "Government & Public Sector",
+    "industrySegment": "International & Non-Profit Organizations",
+    "avgLoadedCostPerFte": 75000
+  },
+  {
+    "companyName": "Krailling Oils Development GmbH. - Tanklager Krailling",
+    "revenueEur": 15000000,
+    "profitEur": 1000000,
+    "totalFte": 20,
+    "avgRevenuePerFte": 230000,
+    "industryL1": "Transportation & Logistics",
+    "industrySegment": "Warehousing & Logistics Services",
+    "avgLoadedCostPerFte": 70000
+  },
+  {
+    "companyName": "Lenau Holding GmbH",
+    "revenueEur": 5000000,
+    "profitEur": 1000000,
+    "totalFte": 10,
+    "avgRevenuePerFte": 400000,
+    "industryL1": "Financial Services",
+    "industrySegment": "Asset & Wealth Management",
+    "avgLoadedCostPerFte": 110000
+  },
+  {
+    "companyName": "Magenta Telekom",
+    "revenueEur": 1493500000,
+    "profitEur": 150000000,
+    "totalFte": 2200,
+    "avgRevenuePerFte": 300000,
+    "industryL1": "Information, Media & Telecommunications",
+    "industrySegment": "Telecommunications",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "MAGENTA TELEKOM (T-Mobile Austria GmbH)",
+    "revenueEur": 1493500000,
+    "profitEur": 150000000,
+    "totalFte": 2200,
+    "avgRevenuePerFte": 300000,
+    "industryL1": "Information, Media & Telecommunications",
+    "industrySegment": "Telecommunications",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "METRO Österreich GmbH",
+    "revenueEur": 914000000,
+    "profitEur": 10000000,
+    "totalFte": 2300,
+    "avgRevenuePerFte": 400000,
+    "industryL1": "Wholesale & Retail Trade",
+    "industrySegment": "Wholesale & Distribution",
+    "avgLoadedCostPerFte": 60000
+  },
+  {
+    "companyName": "Noctua Science Ventures",
+    "revenueEur": 3000000,
+    "profitEur": 500000,
+    "totalFte": 10,
+    "avgRevenuePerFte": 400000,
+    "industryL1": "Financial Services",
+    "industrySegment": "Asset & Wealth Management",
+    "avgLoadedCostPerFte": 110000
+  },
+  {
+    "companyName": "Numa Group SE",
+    "revenueEur": 180000000,
+    "profitEur": 0,
+    "totalFte": 450,
+    "avgRevenuePerFte": 150000,
+    "industryL1": "Consumer Services, Hospitality & Education",
+    "industrySegment": "Hotels & Accommodation",
+    "avgLoadedCostPerFte": 55000
+  },
+  {
+    "companyName": "oekostrom AG",
+    "revenueEur": 133640000,
+    "profitEur": 6420000,
+    "totalFte": 101,
+    "avgRevenuePerFte": 700000,
+    "industryL1": "Energy & Utilities",
+    "industrySegment": "Renewable Energy",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "Oesterreichische Nationalbank",
+    "revenueEur": 1500000000,
+    "profitEur": -2000000000,
+    "totalFte": 1132,
+    "avgRevenuePerFte": 400000,
+    "industryL1": "Financial Services",
+    "industrySegment": "Banking & Consumer Finance",
+    "avgLoadedCostPerFte": 110000
+  },
+  {
+    "companyName": "ORF",
+    "revenueEur": 1130400000,
+    "profitEur": 34700000,
+    "totalFte": 4500,
+    "avgRevenuePerFte": 300000,
+    "industryL1": "Information, Media & Telecommunications",
+    "industrySegment": "Media, Entertainment & Publishing",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "ORF Österreichischer Rundfunk",
+    "revenueEur": 1130400000,
+    "profitEur": 34700000,
+    "totalFte": 4500,
+    "avgRevenuePerFte": 300000,
+    "industryL1": "Information, Media & Telecommunications",
+    "industrySegment": "Media, Entertainment & Publishing",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "Orlen S.A.",
+    "revenueEur": 68500000000,
+    "profitEur": 300000000,
+    "totalFte": 66000,
+    "avgRevenuePerFte": 300000,
+    "industryL1": "Agriculture & Natural Resources",
+    "industrySegment": "Oil & Gas Extraction",
+    "avgLoadedCostPerFte": 65000
+  },
+  {
+    "companyName": "Philip Morris Austria GmbH",
+    "revenueEur": 60000000,
+    "profitEur": 4000000,
+    "totalFte": 130,
+    "avgRevenuePerFte": 450000,
+    "industryL1": "Manufacturing",
+    "industrySegment": "Food, Beverage & Tobacco",
+    "avgLoadedCostPerFte": 85000
+  },
+  {
+    "companyName": "Philip Morris International",
+    "revenueEur": 35000000000,
+    "profitEur": 6600000000,
+    "totalFte": 82700,
+    "avgRevenuePerFte": 450000,
+    "industryL1": "Manufacturing",
+    "industrySegment": "Food, Beverage & Tobacco",
+    "avgLoadedCostPerFte": 85000
+  },
+  {
+    "companyName": "Podero",
+    "revenueEur": 3000000,
+    "profitEur": -1000000,
+    "totalFte": 30,
+    "avgRevenuePerFte": 300000,
+    "industryL1": "Information, Media & Telecommunications",
+    "industrySegment": "Software & SaaS",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "Polestar Automotive Austria GmbH",
+    "revenueEur": 50000000,
+    "profitEur": -2000000,
+    "totalFte": 20,
+    "avgRevenuePerFte": 400000,
+    "industryL1": "Wholesale & Retail Trade",
+    "industrySegment": "Automotive Dealers & Service",
+    "avgLoadedCostPerFte": 60000
+  },
+  {
+    "companyName": "ProSiebenSat.1 PULS 4 GmbH",
+    "revenueEur": 150000000,
+    "profitEur": 15000000,
+    "totalFte": 400,
+    "avgRevenuePerFte": 300000,
+    "industryL1": "Information, Media & Telecommunications",
+    "industrySegment": "Media, Entertainment & Publishing",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "Raiffeisen Bank International",
+    "revenueEur": 8500000000,
+    "profitEur": 1156900000,
+    "totalFte": 42600,
+    "avgRevenuePerFte": 400000,
+    "industryL1": "Financial Services",
+    "industrySegment": "Banking & Consumer Finance",
+    "avgLoadedCostPerFte": 110000
+  },
+  {
+    "companyName": "Raiffeisen Bank International AG",
+    "revenueEur": 8500000000,
+    "profitEur": 1156900000,
+    "totalFte": 42600,
+    "avgRevenuePerFte": 400000,
+    "industryL1": "Financial Services",
+    "industrySegment": "Banking & Consumer Finance",
+    "avgLoadedCostPerFte": 110000
+  },
+  {
+    "companyName": "Raiffeisen Landesbank Kärnten",
+    "revenueEur": 350000000,
+    "profitEur": 129300000,
+    "totalFte": 1552,
+    "avgRevenuePerFte": 400000,
+    "industryL1": "Financial Services",
+    "industrySegment": "Banking & Consumer Finance",
+    "avgLoadedCostPerFte": 110000
+  },
+  {
+    "companyName": "Raiffeisen-Holding Niederösterreich-Wien",
+    "revenueEur": 471700000,
+    "profitEur": 783800000,
+    "totalFte": 3500,
+    "avgRevenuePerFte": 400000,
+    "industryL1": "Financial Services",
+    "industrySegment": "Banking & Consumer Finance",
+    "avgLoadedCostPerFte": 110000
+  },
+  {
+    "companyName": "Raiffeisen-Holding NÖ-Wien",
+    "revenueEur": 471700000,
+    "profitEur": 783800000,
+    "totalFte": 3500,
+    "avgRevenuePerFte": 400000,
+    "industryL1": "Financial Services",
+    "industrySegment": "Banking & Consumer Finance",
+    "avgLoadedCostPerFte": 110000
+  },
+  {
+    "companyName": "RTL AdAlliance GmbH",
+    "revenueEur": 300000000,
+    "profitEur": 10000000,
+    "totalFte": 1261,
+    "avgRevenuePerFte": 200000,
+    "industryL1": "Professional & Business Services",
+    "industrySegment": "Advertising, Marketing & Market Research",
+    "avgLoadedCostPerFte": 90000
+  },
+  {
+    "companyName": "Schachinger Logistik Holding GmbH",
+    "revenueEur": 310000000,
+    "profitEur": 8000000,
+    "totalFte": 700,
+    "avgRevenuePerFte": 230000,
+    "industryL1": "Transportation & Logistics",
+    "industrySegment": "Warehousing & Logistics Services",
+    "avgLoadedCostPerFte": 70000
+  },
+  {
+    "companyName": "Siemens AG Österreich",
+    "revenueEur": 1300000000,
+    "profitEur": 66400000,
+    "totalFte": 3100,
+    "avgRevenuePerFte": 450000,
+    "industryL1": "Manufacturing",
+    "industrySegment": "Electronics & Electrical Equipment",
+    "avgLoadedCostPerFte": 85000
+  },
+  {
+    "companyName": "Skoda Group",
+    "revenueEur": 1360000000,
+    "profitEur": 20000000,
+    "totalFte": 10000,
+    "avgRevenuePerFte": 450000,
+    "industryL1": "Manufacturing",
+    "industrySegment": "Automotive & Transportation Equipment",
+    "avgLoadedCostPerFte": 85000
+  },
+  {
+    "companyName": "Skoda Group Austria",
+    "revenueEur": 1360000000,
+    "profitEur": 20000000,
+    "totalFte": 10000,
+    "avgRevenuePerFte": 450000,
+    "industryL1": "Manufacturing",
+    "industrySegment": "Automotive & Transportation Equipment",
+    "avgLoadedCostPerFte": 85000
+  },
+  {
+    "companyName": "Skoda Group Austria GmbH",
+    "revenueEur": 1360000000,
+    "profitEur": 20000000,
+    "totalFte": 10000,
+    "avgRevenuePerFte": 450000,
+    "industryL1": "Manufacturing",
+    "industrySegment": "Automotive & Transportation Equipment",
+    "avgLoadedCostPerFte": 85000
+  },
+  {
+    "companyName": "Stadt Wien",
+    "revenueEur": 20200000000,
+    "profitEur": -3800000000,
+    "totalFte": 65000,
+    "avgRevenuePerFte": 150000,
+    "industryL1": "Government & Public Sector",
+    "industrySegment": "Public Administration",
+    "avgLoadedCostPerFte": 75000
+  },
+  {
+    "companyName": "STELLANTIS",
+    "revenueEur": 156900000000,
+    "profitEur": 5500000000,
+    "totalFte": 250000,
+    "avgRevenuePerFte": 450000,
+    "industryL1": "Manufacturing",
+    "industrySegment": "Automotive & Transportation Equipment",
+    "avgLoadedCostPerFte": 85000
+  },
+  {
+    "companyName": "T-Mobile Austria GmbH",
+    "revenueEur": 1493500000,
+    "profitEur": 150000000,
+    "totalFte": 2200,
+    "avgRevenuePerFte": 300000,
+    "industryL1": "Information, Media & Telecommunications",
+    "industrySegment": "Telecommunications",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "The Payments Association EU",
+    "revenueEur": 1000000,
+    "profitEur": 0,
+    "totalFte": 10,
+    "avgRevenuePerFte": 150000,
+    "industryL1": "Government & Public Sector",
+    "industrySegment": "International & Non-Profit Organizations",
+    "avgLoadedCostPerFte": 75000
+  },
+  {
+    "companyName": "TTTech",
+    "revenueEur": 111690000,
+    "profitEur": 5000000,
+    "totalFte": 2000,
+    "avgRevenuePerFte": 450000,
+    "industryL1": "Manufacturing",
+    "industrySegment": "Electronics & Electrical Equipment",
+    "avgLoadedCostPerFte": 85000
+  },
+  {
+    "companyName": "UBS Switzerland AG",
+    "revenueEur": 45000000000,
+    "profitEur": 4700000000,
+    "totalFte": 109000,
+    "avgRevenuePerFte": 400000,
+    "industryL1": "Financial Services",
+    "industrySegment": "Banking & Consumer Finance",
+    "avgLoadedCostPerFte": 110000
+  },
+  {
+    "companyName": "UNIQA Insurance Group AG",
+    "revenueEur": 7800000000,
+    "profitEur": 348000000,
+    "totalFte": 15131,
+    "avgRevenuePerFte": 400000,
+    "industryL1": "Financial Services",
+    "industrySegment": "Insurance",
+    "avgLoadedCostPerFte": 110000
+  },
+  {
+    "companyName": "VDMA Österreich",
+    "revenueEur": 1500000,
+    "profitEur": 0,
+    "totalFte": 5,
+    "avgRevenuePerFte": 150000,
+    "industryL1": "Government & Public Sector",
+    "industrySegment": "International & Non-Profit Organizations",
+    "avgLoadedCostPerFte": 75000
+  },
+  {
+    "companyName": "VERBUND Hydro Power GmbH",
+    "revenueEur": 1500000000,
+    "profitEur": 500000000,
+    "totalFte": 1300,
+    "avgRevenuePerFte": 700000,
+    "industryL1": "Energy & Utilities",
+    "industrySegment": "Renewable Energy",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "Wien Energie",
+    "revenueEur": 3441400000,
+    "profitEur": 294800000,
+    "totalFte": 2574,
+    "avgRevenuePerFte": 700000,
+    "industryL1": "Energy & Utilities",
+    "industrySegment": "Power Generation (Conventional)",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "Wien Energie GmbH",
+    "revenueEur": 3441400000,
+    "profitEur": 294800000,
+    "totalFte": 2574,
+    "avgRevenuePerFte": 700000,
+    "industryL1": "Energy & Utilities",
+    "industrySegment": "Power Generation (Conventional)",
+    "avgLoadedCostPerFte": 95000
+  },
+  {
+    "companyName": "Wien Holding Sport GmbH",
+    "revenueEur": 20000000,
+    "profitEur": 0,
+    "totalFte": 100,
+    "avgRevenuePerFte": 150000,
+    "industryL1": "Consumer Services, Hospitality & Education",
+    "industrySegment": "Travel, Leisure & Recreation",
+    "avgLoadedCostPerFte": 55000
+  },
+  {
+    "companyName": "Wiener Linien",
+    "revenueEur": 1000000000,
+    "profitEur": -378000000,
+    "totalFte": 9700,
+    "avgRevenuePerFte": 230000,
+    "industryL1": "Transportation & Logistics",
+    "industrySegment": "Passenger Transit & Mobility",
+    "avgLoadedCostPerFte": 70000
+  },
+  {
+    "companyName": "Wirtschaftskammer Wien - JW Wien",
+    "revenueEur": 2000000,
+    "profitEur": 0,
+    "totalFte": 10,
+    "avgRevenuePerFte": 150000,
+    "industryL1": "Government & Public Sector",
+    "industrySegment": "International & Non-Profit Organizations",
+    "avgLoadedCostPerFte": 75000
+  },
+  {
+    "companyName": "Zumtobel Group AG",
+    "revenueEur": 1097200000,
+    "profitEur": 15300000,
+    "totalFte": 5300,
+    "avgRevenuePerFte": 450000,
+    "industryL1": "Manufacturing",
+    "industrySegment": "Electronics & Electrical Equipment",
+    "avgLoadedCostPerFte": 85000
+  },
+  {
+    "companyName": "ÖAMTC",
+    "revenueEur": 400000000,
+    "profitEur": 10000000,
+    "totalFte": 3900,
+    "avgRevenuePerFte": 150000,
+    "industryL1": "Government & Public Sector",
+    "industrySegment": "International & Non-Profit Organizations",
+    "avgLoadedCostPerFte": 75000
+  },
+  {
+    "companyName": "ÖBB Infrastruktur",
+    "revenueEur": 4219100000,
+    "profitEur": 100000000,
+    "totalFte": 18000,
+    "avgRevenuePerFte": 230000,
+    "industryL1": "Transportation & Logistics",
+    "industrySegment": "Rail Transport",
+    "avgLoadedCostPerFte": 70000
+  },
+  {
+    "companyName": "ÖBB Infrastruktur AG",
+    "revenueEur": 4219100000,
+    "profitEur": 100000000,
+    "totalFte": 18000,
+    "avgRevenuePerFte": 230000,
+    "industryL1": "Transportation & Logistics",
+    "industrySegment": "Rail Transport",
+    "avgLoadedCostPerFte": 70000
+  },
+  {
+    "companyName": "Österreichs E-Wirtschaft",
+    "revenueEur": 8000000,
+    "profitEur": 0,
+    "totalFte": 40,
+    "avgRevenuePerFte": 150000,
+    "industryL1": "Government & Public Sector",
+    "industrySegment": "International & Non-Profit Organizations",
+    "avgLoadedCostPerFte": 75000
+  }
+]
