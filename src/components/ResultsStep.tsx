@@ -31,13 +31,9 @@ export default function ResultsStep({
           </p>
         </div>
         <div className="flex gap-3">
-          <ExportPdfButton />
+          <ExportPdfButton companyName={input.companyName} />
         </div>
       </div>
-      <p className="mt-1 text-xs text-slate-400 print-hide">
-        Emailing this PDF isn&apos;t wired up yet — use &quot;Download PDF&quot; (choose &quot;Save as PDF&quot; in
-        the print dialog) and send it yourself for now.
-      </p>
 
       <div id="report-root" className="mt-6 space-y-8 bg-slate-50 p-1">
         <div className="hidden print:block">
