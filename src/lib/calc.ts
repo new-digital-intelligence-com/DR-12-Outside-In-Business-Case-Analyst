@@ -20,13 +20,42 @@ export function effectiveTotalFte(input: CompanyInput): number {
   return input.totalFte > 0 ? input.totalFte : totalFteCalculated(input);
 }
 
+/** Capped functions hold the absolute headcount of a scalingReferenceFte-sized company (growing
+ * slowly with size); linear functions absorb whatever % FTE that frees up, so the total stays 100%. */
+function scalingFactor(
+  totalFte: number,
+  scalingType: 'capped' | 'linear',
+  cappedShareOfBasePct: number,
+  parameters: Parameters
+): number {
+  if (totalFte <= 0) return 1;
+  const cappedFactor =
+    (Math.min(totalFte, parameters.scalingReferenceFte) / totalFte) *
+    (1 +
+      (parameters.scalingGrowthPerStepPct * Math.max(0, totalFte - parameters.scalingReferenceFte)) /
+        parameters.scalingStepFte);
+  if (scalingType === 'capped') return cappedFactor;
+  if (cappedShareOfBasePct >= 1) return 1;
+  return (1 - cappedFactor * cappedShareOfBasePct) / (1 - cappedShareOfBasePct);
+}
+
 /** Seeds the 65 editable per-function assumptions from industry benchmarks — this is what the
  * user then confirms or changes on the FTE Mapping step. */
-export function seedFunctionAssumptions(input: CompanyInput): FunctionAssumption[] {
+export function seedFunctionAssumptions(
+  input: CompanyInput,
+  parameters: Parameters = DEFAULT_PARAMETERS
+): FunctionAssumption[] {
   const totalFte = effectiveTotalFte(input);
+  const cappedShareOfBasePct = sum(
+    FUNCTIONS.filter((f) => FTE_DEFAULTS[f.l2Code]?.scalingType === 'capped'),
+    (f) => pctFteFor(f.l2Code, input.industrySegment)
+  );
+
   return FUNCTIONS.map((f) => {
-    const pctFte = pctFteFor(f.l2Code, input.industrySegment);
     const defaults = FTE_DEFAULTS[f.l2Code];
+    const basePctFte = pctFteFor(f.l2Code, input.industrySegment);
+    const factor = scalingFactor(totalFte, defaults?.scalingType ?? 'linear', cappedShareOfBasePct, parameters);
+    const pctFte = basePctFte * factor;
     return {
       l2Code: f.l2Code,
       pctFte,

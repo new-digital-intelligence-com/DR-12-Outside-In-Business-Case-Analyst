@@ -20,6 +20,9 @@ interface ModelData {
     implementationCostPctOfEmployeeCost: number;
     contributionMarginOnIncrementalRevenuePct: number;
     strategicImportanceWeightingPct: number;
+    scalingReferenceFte: number;
+    scalingStepFte: number;
+    scalingGrowthPerStepPct: number;
   };
   implementationParameters: {
     implementationWindowMonths: number;
@@ -46,6 +49,9 @@ export const DEFAULT_PARAMETERS: Parameters = {
   implementationCostPctOfEmployeeCost: data.parameters.implementationCostPctOfEmployeeCost,
   contributionMarginOnIncrementalRevenuePct: data.parameters.contributionMarginOnIncrementalRevenuePct,
   strategicImportanceWeightingPct: data.parameters.strategicImportanceWeightingPct,
+  scalingReferenceFte: data.parameters.scalingReferenceFte,
+  scalingStepFte: data.parameters.scalingStepFte,
+  scalingGrowthPerStepPct: data.parameters.scalingGrowthPerStepPct,
   implementationWindowMonths: data.implementationParameters.implementationWindowMonths,
   implementationDurationPerWaveMonths: data.implementationParameters.implementationDurationPerWaveMonths,
   numberOfWaves: data.implementationParameters.numberOfWaves,

@@ -590,327 +590,392 @@
     "1.1": {
       "aiCapability": 0.7,
       "revenueLeverageFactor": 0.3,
-      "genericFteShare": 0.005
+      "genericFteShare": 0.005,
+      "scalingType": "capped"
     },
     "1.2": {
       "aiCapability": 0.4,
       "revenueLeverageFactor": 0.2,
-      "genericFteShare": 0.01
+      "genericFteShare": 0.01,
+      "scalingType": "capped"
     },
     "1.3": {
       "aiCapability": 0.6,
       "revenueLeverageFactor": 0,
-      "genericFteShare": 0.002
+      "genericFteShare": 0.002,
+      "scalingType": "capped"
     },
     "1.4": {
       "aiCapability": 0.6,
       "revenueLeverageFactor": 0.3,
-      "genericFteShare": 0.003
+      "genericFteShare": 0.003,
+      "scalingType": "capped"
     },
     "1.5": {
       "aiCapability": 0.65,
       "revenueLeverageFactor": 0,
-      "genericFteShare": 0.003
+      "genericFteShare": 0.003,
+      "scalingType": "capped"
     },
     "1.6": {
       "aiCapability": 0.7,
       "revenueLeverageFactor": 0.1,
-      "genericFteShare": 0.01
+      "genericFteShare": 0.01,
+      "scalingType": "capped"
     },
     "1.7": {
       "aiCapability": 0.75,
       "revenueLeverageFactor": 0.2,
-      "genericFteShare": 0.004
+      "genericFteShare": 0.004,
+      "scalingType": "capped"
     },
     "1.8": {
       "aiCapability": 0.6,
       "revenueLeverageFactor": 0.1,
-      "genericFteShare": 0.003
+      "genericFteShare": 0.003,
+      "scalingType": "capped"
     },
     "2.1": {
       "aiCapability": 0.6,
       "revenueLeverageFactor": 0.8,
-      "genericFteShare": 0.005
+      "genericFteShare": 0.005,
+      "scalingType": "capped"
     },
     "2.2": {
       "aiCapability": 0.55,
       "revenueLeverageFactor": 1,
-      "genericFteShare": 0.025
+      "genericFteShare": 0.025,
+      "scalingType": "linear"
     },
     "2.3": {
       "aiCapability": 0.5,
       "revenueLeverageFactor": 0.9,
-      "genericFteShare": 0.03
+      "genericFteShare": 0.03,
+      "scalingType": "linear"
     },
     "2.4": {
       "aiCapability": 0.7,
       "revenueLeverageFactor": 0.7,
-      "genericFteShare": 0.01
+      "genericFteShare": 0.01,
+      "scalingType": "linear"
     },
     "2.5": {
       "aiCapability": 0.5,
       "revenueLeverageFactor": 0.8,
-      "genericFteShare": 0.01
+      "genericFteShare": 0.01,
+      "scalingType": "linear"
     },
     "2.6": {
       "aiCapability": 0.75,
       "revenueLeverageFactor": 1,
-      "genericFteShare": 0.005
+      "genericFteShare": 0.005,
+      "scalingType": "linear"
     },
     "2.7": {
       "aiCapability": 0.8,
       "revenueLeverageFactor": 0.4,
-      "genericFteShare": 0.015
+      "genericFteShare": 0.015,
+      "scalingType": "linear"
     },
     "3.1": {
       "aiCapability": 0.6,
       "revenueLeverageFactor": 0.6,
-      "genericFteShare": 0.008
+      "genericFteShare": 0.008,
+      "scalingType": "capped"
     },
     "3.2": {
       "aiCapability": 0.75,
       "revenueLeverageFactor": 0.5,
-      "genericFteShare": 0.005
+      "genericFteShare": 0.005,
+      "scalingType": "linear"
     },
     "3.3": {
       "aiCapability": 0.7,
       "revenueLeverageFactor": 0.6,
-      "genericFteShare": 0.007
+      "genericFteShare": 0.007,
+      "scalingType": "linear"
     },
     "3.4": {
       "aiCapability": 0.8,
       "revenueLeverageFactor": 0.9,
-      "genericFteShare": 0.01
+      "genericFteShare": 0.01,
+      "scalingType": "linear"
     },
     "3.5": {
       "aiCapability": 0.85,
       "revenueLeverageFactor": 0.5,
-      "genericFteShare": 0.01
+      "genericFteShare": 0.01,
+      "scalingType": "linear"
     },
     "3.6": {
       "aiCapability": 0.4,
       "revenueLeverageFactor": 0.4,
-      "genericFteShare": 0.005
+      "genericFteShare": 0.005,
+      "scalingType": "linear"
     },
     "3.7": {
       "aiCapability": 0.8,
       "revenueLeverageFactor": 0.7,
-      "genericFteShare": 0.005
+      "genericFteShare": 0.005,
+      "scalingType": "linear"
     },
     "4.1": {
       "aiCapability": 0.8,
       "revenueLeverageFactor": 0.3,
-      "genericFteShare": 0.06
+      "genericFteShare": 0.06,
+      "scalingType": "linear"
     },
     "4.2": {
       "aiCapability": 0.6,
       "revenueLeverageFactor": 0.7,
-      "genericFteShare": 0.015
+      "genericFteShare": 0.015,
+      "scalingType": "linear"
     },
     "4.3": {
       "aiCapability": 0.75,
       "revenueLeverageFactor": 0.3,
-      "genericFteShare": 0.01
+      "genericFteShare": 0.01,
+      "scalingType": "linear"
     },
     "4.4": {
       "aiCapability": 0.6,
       "revenueLeverageFactor": 0.4,
-      "genericFteShare": 0.005
+      "genericFteShare": 0.005,
+      "scalingType": "linear"
     },
     "4.5": {
       "aiCapability": 0.65,
       "revenueLeverageFactor": 0.6,
-      "genericFteShare": 0.005
+      "genericFteShare": 0.005,
+      "scalingType": "linear"
     },
     "4.6": {
       "aiCapability": 0.25,
       "revenueLeverageFactor": 0.3,
-      "genericFteShare": 0.025
+      "genericFteShare": 0.025,
+      "scalingType": "linear"
     },
     "5.1": {
       "aiCapability": 0.6,
       "revenueLeverageFactor": 0.5,
-      "genericFteShare": 0.005
+      "genericFteShare": 0.005,
+      "scalingType": "capped"
     },
     "5.2": {
       "aiCapability": 0.6,
       "revenueLeverageFactor": 0.5,
-      "genericFteShare": 0.015
+      "genericFteShare": 0.015,
+      "scalingType": "linear"
     },
     "5.3": {
       "aiCapability": 0.5,
       "revenueLeverageFactor": 0.5,
-      "genericFteShare": 0.03
+      "genericFteShare": 0.03,
+      "scalingType": "linear"
     },
     "5.4": {
       "aiCapability": 0.55,
       "revenueLeverageFactor": 0.4,
-      "genericFteShare": 0.04
+      "genericFteShare": 0.04,
+      "scalingType": "linear"
     },
     "5.5": {
       "aiCapability": 0.65,
       "revenueLeverageFactor": 0.6,
-      "genericFteShare": 0.005
+      "genericFteShare": 0.005,
+      "scalingType": "linear"
     },
     "5.6": {
       "aiCapability": 0.6,
       "revenueLeverageFactor": 0.2,
-      "genericFteShare": 0.02
+      "genericFteShare": 0.02,
+      "scalingType": "linear"
     },
     "5.7": {
       "aiCapability": 0.65,
       "revenueLeverageFactor": 0.2,
-      "genericFteShare": 0.005
+      "genericFteShare": 0.005,
+      "scalingType": "capped"
     },
     "6.1": {
       "aiCapability": 0.1,
       "revenueLeverageFactor": 0.1,
-      "genericFteShare": 0.18
+      "genericFteShare": 0.18,
+      "scalingType": "linear"
     },
     "6.2": {
       "aiCapability": 0.3,
       "revenueLeverageFactor": 0.2,
-      "genericFteShare": 0.07
+      "genericFteShare": 0.07,
+      "scalingType": "linear"
     },
     "6.3": {
       "aiCapability": 0.2,
       "revenueLeverageFactor": 0.2,
-      "genericFteShare": 0.03
+      "genericFteShare": 0.03,
+      "scalingType": "linear"
     },
     "6.4": {
       "aiCapability": 0.6,
       "revenueLeverageFactor": 0,
-      "genericFteShare": 0.02
+      "genericFteShare": 0.02,
+      "scalingType": "linear"
     },
     "6.5": {
       "aiCapability": 0.55,
       "revenueLeverageFactor": 0.2,
-      "genericFteShare": 0.04
+      "genericFteShare": 0.04,
+      "scalingType": "linear"
     },
     "6.6": {
       "aiCapability": 0.15,
       "revenueLeverageFactor": 0.05,
-      "genericFteShare": 0.04
+      "genericFteShare": 0.04,
+      "scalingType": "linear"
     },
     "6.7": {
       "aiCapability": 0.15,
       "revenueLeverageFactor": 0,
-      "genericFteShare": 0.01
+      "genericFteShare": 0.01,
+      "scalingType": "linear"
     },
     "6.8": {
       "aiCapability": 0.3,
       "revenueLeverageFactor": 0,
-      "genericFteShare": 0.005
+      "genericFteShare": 0.005,
+      "scalingType": "linear"
     },
     "6.9": {
       "aiCapability": 0.5,
       "revenueLeverageFactor": 0.1,
-      "genericFteShare": 0.005
+      "genericFteShare": 0.005,
+      "scalingType": "linear"
     },
     "7.1": {
       "aiCapability": 0.75,
       "revenueLeverageFactor": 0.1,
-      "genericFteShare": 0.007
+      "genericFteShare": 0.007,
+      "scalingType": "capped"
     },
     "7.2": {
       "aiCapability": 0.75,
       "revenueLeverageFactor": 0,
-      "genericFteShare": 0.013
+      "genericFteShare": 0.013,
+      "scalingType": "linear"
     },
     "7.3": {
       "aiCapability": 0.65,
       "revenueLeverageFactor": 0,
-      "genericFteShare": 0.003
+      "genericFteShare": 0.003,
+      "scalingType": "linear"
     },
     "7.4": {
       "aiCapability": 0.7,
       "revenueLeverageFactor": 0,
-      "genericFteShare": 0.003
+      "genericFteShare": 0.003,
+      "scalingType": "linear"
     },
     "7.5": {
       "aiCapability": 0.6,
       "revenueLeverageFactor": 0,
-      "genericFteShare": 0.003
+      "genericFteShare": 0.003,
+      "scalingType": "linear"
     },
     "7.6": {
       "aiCapability": 0.85,
       "revenueLeverageFactor": 0,
-      "genericFteShare": 0.009
+      "genericFteShare": 0.009,
+      "scalingType": "linear"
     },
     "7.7": {
       "aiCapability": 0.85,
       "revenueLeverageFactor": 0.1,
-      "genericFteShare": 0.012
+      "genericFteShare": 0.012,
+      "scalingType": "linear"
     },
     "8.1": {
       "aiCapability": 0.55,
       "revenueLeverageFactor": 0,
-      "genericFteShare": 0.005
+      "genericFteShare": 0.005,
+      "scalingType": "capped"
     },
     "8.2": {
       "aiCapability": 0.7,
       "revenueLeverageFactor": 0.1,
-      "genericFteShare": 0.006
+      "genericFteShare": 0.006,
+      "scalingType": "linear"
     },
     "8.3": {
       "aiCapability": 0.65,
       "revenueLeverageFactor": 0.1,
-      "genericFteShare": 0.004
+      "genericFteShare": 0.004,
+      "scalingType": "linear"
     },
     "8.4": {
       "aiCapability": 0.65,
       "revenueLeverageFactor": 0,
-      "genericFteShare": 0.003
+      "genericFteShare": 0.003,
+      "scalingType": "linear"
     },
     "8.5": {
       "aiCapability": 0.5,
       "revenueLeverageFactor": 0,
-      "genericFteShare": 0.003
+      "genericFteShare": 0.003,
+      "scalingType": "linear"
     },
     "8.6": {
       "aiCapability": 0.75,
       "revenueLeverageFactor": 0,
-      "genericFteShare": 0.002
+      "genericFteShare": 0.002,
+      "scalingType": "capped"
     },
     "8.7": {
       "aiCapability": 0.8,
       "revenueLeverageFactor": 0,
-      "genericFteShare": 0.007
+      "genericFteShare": 0.007,
+      "scalingType": "linear"
     },
     "9.1": {
       "aiCapability": 0.6,
       "revenueLeverageFactor": 0.1,
-      "genericFteShare": 0.005
+      "genericFteShare": 0.005,
+      "scalingType": "capped"
     },
     "9.2": {
       "aiCapability": 0.65,
       "revenueLeverageFactor": 0.2,
-      "genericFteShare": 0.015
+      "genericFteShare": 0.015,
+      "scalingType": "linear"
     },
     "9.3": {
       "aiCapability": 0.55,
       "revenueLeverageFactor": 0.1,
-      "genericFteShare": 0.015
+      "genericFteShare": 0.015,
+      "scalingType": "linear"
     },
     "9.4": {
       "aiCapability": 0.6,
       "revenueLeverageFactor": 0.05,
-      "genericFteShare": 0.008
+      "genericFteShare": 0.008,
+      "scalingType": "linear"
     },
     "9.5": {
       "aiCapability": 0.8,
       "revenueLeverageFactor": 0.05,
-      "genericFteShare": 0.015
+      "genericFteShare": 0.015,
+      "scalingType": "linear"
     },
     "9.6": {
       "aiCapability": 0.75,
       "revenueLeverageFactor": 0.4,
-      "genericFteShare": 0.025
+      "genericFteShare": 0.025,
+      "scalingType": "linear"
     },
     "9.7": {
       "aiCapability": 0.8,
       "revenueLeverageFactor": 0.5,
-      "genericFteShare": 0.007
+      "genericFteShare": 0.007,
+      "scalingType": "linear"
     }
   },
   "industryList": [
@@ -5675,7 +5740,10 @@
     "totalCostPerAiEmployeeEur": 10000,
     "implementationCostPctOfEmployeeCost": 0.4,
     "contributionMarginOnIncrementalRevenuePct": 0.3,
-    "strategicImportanceWeightingPct": 1
+    "strategicImportanceWeightingPct": 1,
+    "scalingReferenceFte": 1000,
+    "scalingStepFte": 5000,
+    "scalingGrowthPerStepPct": 0.05
   },
   "implementationParameters": {
     "implementationWindowMonths": 24,

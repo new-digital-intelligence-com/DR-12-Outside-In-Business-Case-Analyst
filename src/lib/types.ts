@@ -12,6 +12,9 @@ export interface FteDefault {
   aiCapability: number;
   revenueLeverageFactor: number;
   genericFteShare: number;
+  /** 'capped' functions hold the absolute headcount of a scalingReferenceFte-sized company (growing
+   * slowly with size); 'linear' functions absorb the % FTE that scaling frees up, so the total stays 100%. */
+  scalingType: 'capped' | 'linear';
 }
 
 export interface IndustrySegment {
@@ -42,6 +45,11 @@ export interface Parameters {
   implementationWindowMonths: number;
   implementationDurationPerWaveMonths: number;
   numberOfWaves: number;
+  /** Company size (FTE) below which no scaling is applied. */
+  scalingReferenceFte: number;
+  /** Capped functions' absolute headcount grows by scalingGrowthPerStepPct per this many FTE past scalingReferenceFte. */
+  scalingStepFte: number;
+  scalingGrowthPerStepPct: number;
 }
 
 /** Per-function editable assumptions, seeded from benchmarks, confirmable/changeable by the user. */
