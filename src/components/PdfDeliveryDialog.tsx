@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { AssessmentResult, CompanyInput } from '@/lib/types';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -33,25 +34,50 @@ function Switch({
   );
 }
 
+async function downloadPdf(input: CompanyInput, result: AssessmentResult) {
+  const res = await fetch('/api/generate-pdf', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ input, result }),
+  });
+  if (!res.ok) {
+    const data = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(data.error || 'Failed to generate the PDF.');
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${input.companyName} - AI Opportunity Assessment.pdf`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function PdfDeliveryDialog({
   open,
   onClose,
-  companyName,
+  input,
+  result,
 }: {
   open: boolean;
   onClose: () => void;
-  companyName: string;
+  input: CompanyInput;
+  result: AssessmentResult;
 }) {
   const [downloadOn, setDownloadOn] = useState(true);
   const [emailOn, setEmailOn] = useState(false);
   const [email, setEmail] = useState('');
   const [consent, setConsent] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'working' | 'done' | 'error'>('idle');
+  const [doneMsg, setDoneMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
   const emailValid = EMAIL_RE.test(email.trim());
   const consentEnabled = emailOn && emailValid;
 
+  // Resetting derived/dialog-lifecycle state in response to a prop/derived-value change is exactly
+  // what these effects are for; there's no user-event callback to hang these resets off instead.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!consentEnabled) setConsent(false);
   }, [consentEnabled]);
@@ -63,9 +89,11 @@ export default function PdfDeliveryDialog({
       setEmail('');
       setConsent(false);
       setStatus('idle');
+      setDoneMsg('');
       setErrorMsg('');
     }
   }, [open]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!open) return;
@@ -78,31 +106,36 @@ export default function PdfDeliveryDialog({
 
   if (!open) return null;
 
-  const canContinue = (downloadOn || (emailOn && emailValid)) && status !== 'sending';
+  const canContinue = (downloadOn || (emailOn && emailValid)) && status !== 'working';
 
   async function handleContinue() {
-    if (downloadOn) window.print();
+    setStatus('working');
+    setErrorMsg('');
+    const messages: string[] = [];
 
-    if (emailOn && emailValid) {
-      setStatus('sending');
-      setErrorMsg('');
-      try {
+    try {
+      if (downloadOn) {
+        await downloadPdf(input, result);
+        messages.push('Downloaded.');
+      }
+
+      if (emailOn && emailValid) {
         const res = await fetch('/api/send-report', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email.trim(), consent, companyName }),
+          body: JSON.stringify({ email: email.trim(), consent, input, result }),
         });
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         if (!res.ok) throw new Error(data.error || 'Failed to send the email.');
-        setStatus('sent');
-      } catch (err) {
-        setStatus('error');
-        setErrorMsg(err instanceof Error ? err.message : 'Failed to send the email.');
+        messages.push(`Sent to ${email.trim()}.`);
       }
-      return;
-    }
 
-    onClose();
+      setDoneMsg(messages.join(' '));
+      setStatus('done');
+    } catch (err) {
+      setStatus('error');
+      setErrorMsg(err instanceof Error ? err.message : 'Something went wrong.');
+    }
   }
 
   return (
@@ -119,7 +152,7 @@ export default function PdfDeliveryDialog({
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-slate-800">Download now</p>
-              <p className="text-xs text-slate-500">Opens the print dialog on this device.</p>
+              <p className="text-xs text-slate-500">Saves the PDF to this device.</p>
             </div>
             <Switch checked={downloadOn} onChange={setDownloadOn} label="Download now" />
           </div>
@@ -160,9 +193,7 @@ export default function PdfDeliveryDialog({
             NDI and Pioneers may contact me
           </label>
 
-          {status === 'sent' && (
-            <p className="text-xs font-medium text-emerald-600">Sent to {email.trim()}.</p>
-          )}
+          {status === 'done' && <p className="text-xs font-medium text-emerald-600">{doneMsg}</p>}
           {status === 'error' && <p className="text-xs font-medium text-red-600">{errorMsg}</p>}
         </div>
 
@@ -172,16 +203,16 @@ export default function PdfDeliveryDialog({
             onClick={onClose}
             className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            {status === 'sent' ? 'Close' : 'Cancel'}
+            {status === 'done' ? 'Close' : 'Cancel'}
           </button>
-          {status !== 'sent' && (
+          {status !== 'done' && (
             <button
               type="button"
               onClick={handleContinue}
               disabled={!canContinue}
               className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-300"
             >
-              {status === 'sending' ? 'Sending…' : 'Continue'}
+              {status === 'working' ? 'Working…' : 'Continue'}
             </button>
           )}
         </div>

@@ -13,5 +13,8 @@
       "binding": "WORKER_SELF_REFERENCE",
       "service": "outside-in-assessment"
     }
-  ]
+  ],
+  "browser": {
+    "binding": "MYBROWSER"
+  }
 }

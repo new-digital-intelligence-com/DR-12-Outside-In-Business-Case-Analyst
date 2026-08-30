@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import PdfDeliveryDialog from './PdfDeliveryDialog';
+import type { AssessmentResult, CompanyInput } from '@/lib/types';
 
-export default function ExportPdfButton({ companyName }: { companyName: string }) {
+export default function ExportPdfButton({ input, result }: { input: CompanyInput; result: AssessmentResult }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -14,7 +15,7 @@ export default function ExportPdfButton({ companyName }: { companyName: string }
       >
         Download PDF
       </button>
-      <PdfDeliveryDialog open={open} onClose={() => setOpen(false)} companyName={companyName} />
+      <PdfDeliveryDialog open={open} onClose={() => setOpen(false)} input={input} result={result} />
     </>
   );
 }
