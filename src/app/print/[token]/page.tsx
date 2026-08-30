@@ -6,7 +6,13 @@ export default async function PrintPage({ params }: { params: Promise<{ token: s
   const stashed = await readStashedReport(token);
 
   if (!stashed) {
-    return <p className="p-8 text-sm text-slate-500">This preview link has expired.</p>;
+    // Wrapped in #report-root, same as ReportContent — globals.css's print stylesheet hides
+    // everything else on the page, so an unwrapped message here would render as a blank PDF page.
+    return (
+      <div id="report-root" className="p-8 text-sm text-slate-500">
+        This preview link has expired.
+      </div>
+    );
   }
 
   return <ReportContent input={stashed.input} result={stashed.result} />;

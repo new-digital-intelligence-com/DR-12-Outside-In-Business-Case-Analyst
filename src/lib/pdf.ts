@@ -1,20 +1,10 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import type { AssessmentResult, CompanyInput } from './types';
 
+// KV, not Cache API: the Cache API is scoped to whichever single Cloudflare datacenter wrote the
+// entry, and Browser Rendering's headless browser isn't guaranteed to run in that same one — a
+// stash-then-immediately-read-elsewhere pattern would silently miss. KV is readable from any colo.
 const STASH_TTL_SECONDS = 120;
-
-// lib.dom's CacheStorage type doesn't know about the Workers-only `default` cache, so this bypasses
-// TypeScript's merged (and here, incomplete) ambient type rather than fighting it.
-interface EdgeCache {
-  match(key: string): Promise<Response | undefined>;
-  put(key: string, response: Response): Promise<void>;
-  delete(key: string): Promise<boolean>;
-}
-const edgeCache = () => (caches as unknown as { default: EdgeCache }).default;
-
-function stashKey(token: string) {
-  return `https://print-stash.internal/${token}`;
-}
 
 export async function generateReportPdf({
   origin,
@@ -28,12 +18,7 @@ export async function generateReportPdf({
   const { env } = await getCloudflareContext({ async: true });
   const token = crypto.randomUUID();
 
-  await edgeCache().put(
-    stashKey(token),
-    new Response(JSON.stringify({ input, result }), {
-      headers: { 'Content-Type': 'application/json', 'Cache-Control': `max-age=${STASH_TTL_SECONDS}` },
-    }),
-  );
+  await env.PRINT_STASH.put(token, JSON.stringify({ input, result }), { expirationTtl: STASH_TTL_SECONDS });
 
   try {
     const res = await env.MYBROWSER.quickAction('pdf', {
@@ -49,14 +34,15 @@ export async function generateReportPdf({
     }
     return new Uint8Array(await res.arrayBuffer());
   } finally {
-    await edgeCache().delete(stashKey(token));
+    await env.PRINT_STASH.delete(token);
   }
 }
 
 export async function readStashedReport(
   token: string,
 ): Promise<{ input: CompanyInput; result: AssessmentResult } | null> {
-  const cached = await edgeCache().match(stashKey(token));
-  if (!cached) return null;
-  return (await cached.json()) as { input: CompanyInput; result: AssessmentResult };
+  const { env } = await getCloudflareContext({ async: true });
+  const stored = await env.PRINT_STASH.get(token);
+  if (!stored) return null;
+  return JSON.parse(stored) as { input: CompanyInput; result: AssessmentResult };
 }

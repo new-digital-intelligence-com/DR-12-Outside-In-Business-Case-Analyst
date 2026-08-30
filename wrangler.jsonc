@@ -16,5 +16,11 @@
   ],
   "browser": {
     "binding": "MYBROWSER"
-  }
+  },
+  "kv_namespaces": [
+    {
+      "binding": "PRINT_STASH",
+      "id": "1bc21b8fb7224a47b56275edb28ca66b"
+    }
+  ]
 }
