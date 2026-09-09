@@ -223,9 +223,9 @@ async function runAgenticReport(
  * confirm which one they mean before we spend a full research pass on the wrong company. */
 async function identifyCompany(companyName: string): Promise<CompanyCandidate[]> {
   const client = new Anthropic(ANTHROPIC_CLIENT_OPTS);
-  const prompt = `Search the web to find real, identifiable companies matching the name "${companyName}". There may be multiple distinct companies with this or a similar name (different countries, industries, or legal entities) — call report_candidates with up to 5 of the most plausible distinct matches, each with enough detail (full name, HQ location, website domain, one-line description) to tell them apart. If you find no real company matching this name at all, call report_candidates with an empty list — do not invent one.`;
+  const prompt = `Search the web to find real, identifiable companies matching the name "${companyName}". Use at most 2 searches total, then report your best findings even if you're not exhaustively certain — do not keep searching to be more thorough. There may be multiple distinct companies with this or a similar name (different countries, industries, or legal entities) — call report_candidates with up to 5 of the most plausible distinct matches, each with enough detail (full name, HQ location, website domain, one-line description) to tell them apart. If you find no real company matching this name at all, call report_candidates with an empty list — do not invent one.`;
 
-  const { toolInput, findingsText } = await runAgenticReport(client, prompt, CANDIDATE_REPORT_TOOL, 2048, 3, 3);
+  const { toolInput, findingsText } = await runAgenticReport(client, prompt, CANDIDATE_REPORT_TOOL, 2048, 2, 3);
 
   const direct = toolInput as { candidates?: CompanyCandidate[] } | undefined;
   if (direct?.candidates) return direct.candidates;
@@ -273,6 +273,7 @@ async function runResearch(companyName: string, identityHint: string | undefined
 
     const prompt = [
       `Research the company ${subject} using web search.`,
+      'Use at most 3 searches total, then report your best findings even if incomplete — do not keep searching to be more thorough or to double-check what you already found.',
       'Find (as of the most recent publicly available data): annual revenue, annual net profit, total employee headcount (FTE), and a fully-loaded annual cost per employee estimate appropriate for its country/industry.',
       'Also classify it into exactly one industry and one industry segment from this fixed taxonomy (use the exact spelling given):',
       taxonomy,
@@ -281,7 +282,7 @@ async function runResearch(companyName: string, identityHint: string | undefined
       'When you are done, call report_research with your findings, citing in researchNotes what is reported/sourced vs. estimated.',
     ].join('\n');
 
-    const { toolInput, findingsText } = await runAgenticReport(client, prompt, RESEARCH_REPORT_TOOL, 4096, 5, 4);
+    const { toolInput, findingsText } = await runAgenticReport(client, prompt, RESEARCH_REPORT_TOOL, 4096, 3, 4);
 
     let parsed = toolInput as z.infer<typeof ResearchSchema> | undefined;
 
