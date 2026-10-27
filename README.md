@@ -44,7 +44,7 @@ Variables live in Railway (service → Variables), never in the repo:
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_ID` | Google Sign-In (the public OAuth client ID) |
 | `AI_EMPLOYEES_API_KEY` | the live NDI AI Employees catalogue (without it, the bundled snapshot) |
 | `ANTHROPIC_API_KEY` | live company research |
-| `GOOGLE_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` | optional: "Send via email" |
+| `GOOGLE_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` | optional: "Send via email" (setup below) |
 
 `NEXT_PUBLIC_GOOGLE_CLIENT_ID` is compiled into the browser code, so it only takes effect after a
 rebuild (Railway redeploys after every variable change).
@@ -116,8 +116,8 @@ Two integrations are real but need a credential only you can provide:
    browser print the report page `/print/[token]` with the print stylesheet in `globals.css`; see
    `src/lib/pdf.ts`. On Railway and locally that's Chromium on the same server; locally Chrome or
    Edge is found automatically, or set `CHROMIUM_PATH`. On Cloudflare it's Browser Rendering) and
-   "Send via email", which sends via the Gmail API as the signed-in Google account
-   (`src/app/api/send-report/route.ts`, `src/lib/gmail.ts`). Needs `GOOGLE_CLIENT_ID`,
+   "Send via email", which sends via the Gmail API as the Google account connected in the one-time
+   setup (`src/app/api/send-report/route.ts`, `src/lib/gmail.ts`). Needs `GOOGLE_CLIENT_ID`,
    `GOOGLE_CLIENT_SECRET` and `GMAIL_REFRESH_TOKEN` — see "Send via email (Gmail API)" below. Without
    them, that path honestly reports "not configured" instead of pretending to send.
 
@@ -169,27 +169,35 @@ backend session.
 
 ## Send via email (Gmail API)
 
-Emailing the PDF delivery notice uses the Gmail API (`gmail.send` scope) as your own Google
-account — chosen over SMTP because Cloudflare Workers has no reliable raw-socket SMTP support.
-Every email is sent from whichever account completes the consent flow below (no separate "from"
-address). One-time setup:
+Emailing the PDF uses the Gmail API (`gmail.send` scope) — chosen over SMTP because Cloudflare
+Workers has no reliable raw-socket SMTP support. Every email is sent from whichever Google account
+completes the consent flow below (no separate "from" address). One-time setup per deployment:
 
 1. Reuses the same OAuth client as `NEXT_PUBLIC_GOOGLE_CLIENT_ID` above. In
    [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials), open
-   that client and add a **redirect URI**:
-   `https://outside-in-assessment.new-digital-intelligence.workers.dev/api/oauth/gmail/callback`
-   (add `http://localhost:3000/api/oauth/gmail/callback` too if testing locally).
+   that client and add the deployment's **Authorized redirect URI**:
+   - Railway: `https://outside-in-assessment-production.up.railway.app/api/oauth/gmail/callback`
+   - Cloudflare: `https://outside-in-assessment.new-digital-intelligence.workers.dev/api/oauth/gmail/callback`
+   - local testing: `http://localhost:3000/api/oauth/gmail/callback`
+
+   Opening that address without a `code` shows the redirect URI the deployment sends Google, to
+   compare.
 2. In [APIs & Services → Library](https://console.cloud.google.com/apis/library), enable the
    **Gmail API** on the same project.
-3. Set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` (`.env.local` for local dev, `wrangler secret
-   put` for the deployed Worker — see above).
+3. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` on the deployment (Railway: the service's
+   variables; Cloudflare: `wrangler secret put`; local: `.env.local`). The callback in step 5 needs
+   the secret, so let it go live first.
 4. Visit this URL, signed in as the account that should send the emails, and approve:
    ```
    https://accounts.google.com/o/oauth2/v2/auth?client_id=<GOOGLE_CLIENT_ID>&redirect_uri=<REDIRECT_URI>&response_type=code&scope=https://www.googleapis.com/auth/gmail.send&access_type=offline&prompt=consent
    ```
 5. Google redirects to `/api/oauth/gmail/callback`, which exchanges the code and displays a
-   refresh token once. Copy it into `GMAIL_REFRESH_TOKEN` (`.env.local` and `wrangler secret put
-   GMAIL_REFRESH_TOKEN`), then discard the page — it isn't stored anywhere.
+   refresh token once. Copy it into `GMAIL_REFRESH_TOKEN` on the same deployment, then discard the
+   page — it isn't stored anywhere.
+
+If the OAuth consent screen's audience is **External** and still in **Testing**, Google expires
+the refresh token after 7 days. An **Internal** app (Google Workspace accounts only) or a published
+one keeps it.
 
 Without all three of `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GMAIL_REFRESH_TOKEN`, the
 "send via email" switch fails with an honest "not configured" error.
