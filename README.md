@@ -31,6 +31,26 @@ The current production version runs on Railway:
 
 **https://outside-in-assessment-production.up.railway.app**
 
+### Railway (production)
+
+The service **outside-in-assessment**, in the Railway project of the same name (NDI workspace),
+deploys from this repo's `main` branch: every push to `main` builds and deploys it. Railway builds
+the `Dockerfile`: Node 24 plus Chromium, which prints the PDF report (`src/lib/pdf.ts`).
+
+Variables live in Railway (service → Variables), never in the repo:
+
+| Variable | What it turns on |
+| --- | --- |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_ID` | Google Sign-In (the public OAuth client ID) |
+| `AI_EMPLOYEES_API_KEY` | the live NDI AI Employees catalogue (without it, the bundled snapshot) |
+| `ANTHROPIC_API_KEY` | live company research |
+| `GOOGLE_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` | optional: "Send via email" |
+
+`NEXT_PUBLIC_GOOGLE_CLIENT_ID` is compiled into the browser code, so it only takes effect after a
+rebuild (Railway redeploys after every variable change).
+
+### Cloudflare Workers
+
 This repo is also set up for Cloudflare Workers (via `@opennextjs/cloudflare`), deployed at:
 
 **https://outside-in-assessment.new-digital-intelligence.workers.dev**
@@ -94,7 +114,9 @@ Two integrations are real but need a credential only you can provide:
 2. **PDF delivery** — "Download PDF" opens a dialog (`src/components/PdfDeliveryDialog.tsx`) with
    two independent switches: "Download now" (`src/app/api/generate-pdf/route.ts` has a headless
    browser print the report page `/print/[token]` with the print stylesheet in `globals.css`; see
-   `src/lib/pdf.ts`) and "Send via email", which sends via the Gmail API as the signed-in Google account
+   `src/lib/pdf.ts`. On Railway and locally that's Chromium on the same server; locally Chrome or
+   Edge is found automatically, or set `CHROMIUM_PATH`. On Cloudflare it's Browser Rendering) and
+   "Send via email", which sends via the Gmail API as the signed-in Google account
    (`src/app/api/send-report/route.ts`, `src/lib/gmail.ts`). Needs `GOOGLE_CLIENT_ID`,
    `GOOGLE_CLIENT_SECRET` and `GMAIL_REFRESH_TOKEN` — see "Send via email (Gmail API)" below. Without
    them, that path honestly reports "not configured" instead of pretending to send.
@@ -132,8 +154,10 @@ Client ID, which only you can create:
 
 1. In [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials),
    create an **OAuth client ID** of type **Web application**.
-2. Under **Authorized JavaScript origins**, add `http://localhost:3000` and
-   `https://outside-in-assessment.new-digital-intelligence.workers.dev`. No redirect URI is needed.
+2. Under **Authorized JavaScript origins**, add `http://localhost:3000`,
+   `https://outside-in-assessment-production.up.railway.app` (Railway) and
+   `https://outside-in-assessment.new-digital-intelligence.workers.dev` (Cloudflare). No redirect
+   URI is needed.
 3. Copy `.env.local.example` to `.env.local` and set `NEXT_PUBLIC_GOOGLE_CLIENT_ID` to the client
    ID. Restart `npm run dev`.
 

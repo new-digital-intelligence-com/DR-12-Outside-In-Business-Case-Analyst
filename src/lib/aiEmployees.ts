@@ -77,7 +77,8 @@ export async function getAiEmployeeLinks(): Promise<AiEmployeeLinks> {
 
 async function refresh(): Promise<void> {
   const now = Date.now();
-  const headers: Record<string, string> = { Authorization: `Bearer ${process.env.AI_EMPLOYEES_API_KEY}` };
+  // Trimmed: a key pasted into a hosting dashboard often carries a stray space or newline.
+  const headers: Record<string, string> = { Authorization: `Bearer ${process.env.AI_EMPLOYEES_API_KEY?.trim()}` };
   // An empty 304 doesn't say when the Coach checks next, so the first call asks for the full answer.
   if (state.catalog.source === 'live') headers['If-None-Match'] = `"${state.catalog.version}"`;
   try {

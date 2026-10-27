@@ -1,0 +1,12 @@
+# What goes into the Docker build (Railway): the same files as a clean GitHub checkout, and never
+# local secrets.
+.git
+node_modules
+.next
+.open-next
+.wrangler
+.env*
+cloudflare-env.d.ts
+*.tsbuildinfo
+npm-debug.log*
+.playwright-mcp
