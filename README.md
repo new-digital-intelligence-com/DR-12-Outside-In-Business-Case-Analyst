@@ -49,6 +49,16 @@ Variables live in Railway (service → Variables), never in the repo:
 `NEXT_PUBLIC_GOOGLE_CLIENT_ID` is compiled into the browser code, so it only takes effect after a
 rebuild (Railway redeploys after every variable change).
 
+Saved company research (see below) needs a volume on the service to survive deploys; without one,
+each deploy starts with nothing saved. Add it once, from this folder:
+
+```bash
+railway volume add --service outside-in-assessment --mount-path /data
+```
+
+With a volume attached, Railway stops the old version before starting the new one, so each deploy
+has a few seconds of downtime.
+
 ### Cloudflare Workers
 
 This repo is also set up for Cloudflare Workers (via `@opennextjs/cloudflare`), deployed at:
@@ -103,14 +113,18 @@ validated against it — the numbers match to floating-point precision. That par
 
 Two integrations are real but need a credential only you can provide:
 
-1. **AI company research** (`src/app/api/research/route.ts`) — a real implementation: Claude
-   researches the company with the web search tool, then a second call extracts the findings into
-   structured fields (revenue, profit, FTE, industry/segment matched against our exact taxonomy,
-   loaded cost per FTE), with an explicit instruction to state uncertainty rather than invent
-   precise-looking numbers for private companies. Needs `ANTHROPIC_API_KEY` in `.env.local` (a
-   Console API key — separate from a Claude.ai/Claude Code subscription). Without it, the step
-   honestly reports "not connected" and lets the user fill in figures themselves (with a "load
-   illustrative example data" shortcut for demos).
+1. **AI company research** (`src/app/api/research/route.ts`) — before anything is searched, the
+   user chooses where the figures come from: a live search for the real company, or illustrative
+   example data (no search; the results page and the PDF then say the figures are examples). The
+   live search is a real implementation: Claude researches the company with the web search tool,
+   then a second call extracts the findings into structured fields (revenue, profit, FTE,
+   industry/segment matched against our exact taxonomy, loaded cost per FTE), with an explicit
+   instruction to state uncertainty rather than invent precise-looking numbers for private
+   companies. Results are saved and reused, so a company is searched only once (see "Saved company
+   research" below). Needs `ANTHROPIC_API_KEY` in `.env.local` (a Console API key — separate from a
+   Claude.ai/Claude Code subscription). Without it, the live search honestly reports "not
+   connected" and lets the user fill in figures themselves (with a "load illustrative example data"
+   shortcut for demos).
 2. **PDF delivery** — "Download PDF" opens a dialog (`src/components/PdfDeliveryDialog.tsx`) with
    two independent switches: "Download now" (`src/app/api/generate-pdf/route.ts` has a headless
    browser print the report page `/print/[token]` with the print stylesheet in `globals.css`; see
@@ -120,6 +134,31 @@ Two integrations are real but need a credential only you can provide:
    (`src/app/api/send-report/route.ts`, `src/lib/gmail.ts`). Needs `GMAIL_USER` and
    `GMAIL_APP_PASSWORD` — see "Send via email (Gmail SMTP)" below. Without them, that path honestly
    reports "not configured" instead of pretending to send.
+
+## Saved company research
+
+Each useful live research result is saved, along with the companies each typed name matched
+(`src/lib/savedResearch.ts`), so the same company isn't web-searched twice:
+
+- **While a company name is typed**, companies researched before are suggested
+  (`/api/research/saved`). Picking one loads its saved figures instantly. Typing a saved company's
+  name without picking it offers "Use saved research" on the next step, next to the live search
+  and the example data.
+- **Searching a name again** shows the companies it matched last time, with no new search; picking
+  one that has saved research loads it.
+- **"Search the web again"** (on saved figures) and **"Search again"** (on a saved list of matches)
+  run a fresh search, which replaces the saved one when it finds something. Saved research doesn't
+  expire on its own.
+- **Saved research is shared**: everyone using the deployment gets suggestions from companies
+  anyone researched. The Alpbach participants (pre-researched in `src/data/alpbach.ts`) are never
+  suggested.
+- **Only companies the server found itself are saved**, so a request can't plant made-up figures in
+  everyone's suggestions.
+
+Everything is one JSON file, `saved-research.json`, in the first of these folders that is set:
+`SAVED_RESEARCH_DIR`, the Railway volume (Railway sets `RAILWAY_VOLUME_MOUNT_PATH`), else `.data/`
+in the project (gitignored). To start over, delete the file; edits to it are picked up when the app
+restarts. Cloudflare Workers have no disk, so there nothing is saved and every search is live.
 
 ## NDI AI Employees
 

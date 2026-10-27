@@ -4,31 +4,15 @@ import { z } from 'zod';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import { L1_INDUSTRIES, INDUSTRY_LIST } from '@/data/model';
 import { findAlpbachCompany } from '@/data/alpbach';
-
-export interface ResearchResponse {
-  live: boolean;
-  companyName: string;
-  revenueEur: number | null;
-  profitEur: number | null;
-  totalFte: number | null;
-  avgRevenuePerFte: number | null;
-  industryL1: string | null;
-  industrySegment: string | null;
-  avgLoadedCostPerFte: number | null;
-  note: string;
-}
-
-export interface CompanyCandidate {
-  name: string;
-  location: string;
-  domain: string | null;
-  description: string;
-}
-
-export type ResearchStreamEvent =
-  | { type: 'heartbeat'; elapsedMs: number }
-  | { type: 'candidates'; data: CompanyCandidate[] }
-  | { type: 'result'; data: ResearchResponse };
+import {
+  cleanCandidate,
+  findKnownCandidate,
+  getSavedResearch,
+  getSavedSearch,
+  saveResearch,
+  saveSearch,
+} from '@/lib/savedResearch';
+import type { CompanyCandidate, ResearchResponse, ResearchStreamEvent } from '@/lib/types';
 
 // Custom "report" tools the model calls directly (as a normal tool_use, alongside web_search) to
 // hand back structured results as its final action — this is the same pattern a native multi-tool
@@ -171,6 +155,32 @@ function nullFields() {
   } as const;
 }
 
+function notConfigured(companyName: string): ResearchResponse {
+  return {
+    live: false,
+    companyName,
+    ...nullFields(),
+    note: 'No research connector configured — enter the figures below yourself, or set ANTHROPIC_API_KEY to enable live research.',
+  };
+}
+
+/** Only industry/segment values that exactly match our taxonomy — otherwise blank, rather than
+ * feeding the UI a value its dropdown doesn't recognize. */
+function checkedIndustry(industryL1: string | null, industrySegment: string | null) {
+  const validL1 = L1_INDUSTRIES.some((l1) => l1.name === industryL1);
+  const validSegment = INDUSTRY_LIST.some((s) => s.l2Name === industrySegment && s.l1Name === industryL1);
+  return {
+    industryL1: validL1 ? industryL1 : null,
+    industrySegment: validL1 && validSegment ? industrySegment : null,
+  };
+}
+
+function identityHint(candidate: CompanyCandidate): string {
+  return `full legal name: ${candidate.name}; HQ: ${candidate.location}; website: ${
+    candidate.domain ?? 'unknown'
+  }; ${candidate.description}`;
+}
+
 function textOf(response: Anthropic.Message): string {
   return response.content
     .filter((b): b is Anthropic.TextBlock => b.type === 'text')
@@ -250,14 +260,7 @@ async function identifyCompany(companyName: string): Promise<CompanyCandidate[]>
  * newline-delimited JSON (see POST below).
  */
 async function runResearch(companyName: string, identityHint: string | undefined): Promise<ResearchResponse> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return {
-      live: false,
-      companyName,
-      ...nullFields(),
-      note: 'No research connector configured — enter the figures below yourself, or set ANTHROPIC_API_KEY to enable live research.',
-    };
-  }
+  if (!process.env.ANTHROPIC_API_KEY) return notConfigured(companyName);
 
   try {
     const client = new Anthropic(ANTHROPIC_CLIENT_OPTS);
@@ -306,13 +309,6 @@ async function runResearch(companyName: string, identityHint: string | undefined
       };
     }
 
-    // Only trust industry/segment values that exactly match our taxonomy — otherwise leave blank
-    // rather than feeding the UI a value its dropdown doesn't recognize.
-    const validL1 = L1_INDUSTRIES.some((l1) => l1.name === parsed.industryL1);
-    const validSegment = INDUSTRY_LIST.some(
-      (s) => s.l2Name === parsed.industrySegment && s.l1Name === parsed.industryL1
-    );
-
     return {
       live: true,
       companyName,
@@ -320,8 +316,7 @@ async function runResearch(companyName: string, identityHint: string | undefined
       profitEur: parsed.profitEur,
       totalFte: parsed.totalFte,
       avgRevenuePerFte: parsed.avgRevenuePerFte,
-      industryL1: validL1 ? parsed.industryL1 : null,
-      industrySegment: validL1 && validSegment ? parsed.industrySegment : null,
+      ...checkedIndustry(parsed.industryL1, parsed.industrySegment),
       avgLoadedCostPerFte: parsed.avgLoadedCostPerFte,
       note: parsed.researchNotes,
     };
@@ -337,11 +332,68 @@ async function runResearch(companyName: string, identityHint: string | undefined
   }
 }
 
-export async function POST(req: NextRequest) {
-  const body = (await req.json()) as { companyName: string; confirmedCandidate?: CompanyCandidate };
-  const { companyName, confirmedCandidate } = body;
+/** Companies matching the typed name, for the user to pick from: the saved list from an earlier
+ * search when there is one, else a new web search, which then gets saved. */
+async function findCandidates(companyName: string, fresh: boolean): Promise<ResearchStreamEvent> {
+  const saved = fresh ? null : await getSavedSearch(companyName);
+  if (saved) return { type: 'candidates', data: saved.candidates, savedAt: saved.savedAt };
+  if (!process.env.ANTHROPIC_API_KEY) return { type: 'result', data: notConfigured(companyName) };
 
-  if (!companyName?.trim()) {
+  const found = await withDeadline(identifyCompany(companyName), 200_000, 'Company identification');
+  const candidates = await saveSearch(companyName, found);
+  if (candidates.length === 0) {
+    return {
+      type: 'result',
+      data: {
+        live: true,
+        companyName,
+        ...nullFields(),
+        note: `Couldn't confidently identify "${companyName}" — enter the figures below yourself.`,
+      },
+    };
+  }
+  return { type: 'candidates', data: candidates };
+}
+
+/** Research on the company the user picked: saved research when there is some, else a new web
+ * search, which then gets saved. */
+async function researchCandidate(companyName: string, picked: CompanyCandidate, fresh: boolean): Promise<ResearchResponse> {
+  // Only companies this server found itself are saved, so nobody can plant one in everyone's
+  // suggestions. That's also why the research is about the company's own name, not what was typed.
+  const known = await findKnownCandidate(companyName, picked);
+  const saved = known && !fresh ? await getSavedResearch(known, companyName) : null;
+  if (saved) {
+    const { figures } = saved;
+    return {
+      live: true,
+      companyName,
+      ...figures,
+      // Checked again in case the industry list changed since.
+      ...checkedIndustry(figures.industryL1, figures.industrySegment),
+      note: saved.note,
+      savedAt: saved.savedAt,
+    };
+  }
+  if (!process.env.ANTHROPIC_API_KEY) return notConfigured(companyName);
+
+  const company = known ?? picked;
+  const result = await withDeadline(runResearch(company.name, identityHint(company)), 200_000, 'Research');
+  if (known) await saveResearch(known, companyName, result);
+  return { ...result, companyName };
+}
+
+export async function POST(req: NextRequest) {
+  const body = (await req.json().catch(() => null)) as {
+    companyName?: unknown;
+    confirmedCandidate?: CompanyCandidate;
+    /** Search the web again even when there's saved research. */
+    fresh?: boolean;
+  } | null;
+  const companyName = typeof body?.companyName === 'string' ? body.companyName.trim().slice(0, 200) : '';
+  const confirmedCandidate = body?.confirmedCandidate ? cleanCandidate(body.confirmedCandidate) : undefined;
+  const fresh = body?.fresh === true;
+
+  if (!companyName) {
     return new Response(JSON.stringify({ error: 'companyName is required' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
@@ -387,37 +439,10 @@ export async function POST(req: NextRequest) {
               note: `Pre-researched company profile (${alpbach.companyName}, Alpbach Festival participant list).`,
             },
           });
-        } else if (!process.env.ANTHROPIC_API_KEY) {
-          send({
-            type: 'result',
-            data: {
-              live: false,
-              companyName,
-              ...nullFields(),
-              note: 'No research connector configured — enter the figures below yourself, or set ANTHROPIC_API_KEY to enable live research.',
-            },
-          });
         } else if (confirmedCandidate) {
-          const hint = `full legal name: ${confirmedCandidate.name}; HQ: ${confirmedCandidate.location}; website: ${
-            confirmedCandidate.domain ?? 'unknown'
-          }; ${confirmedCandidate.description}`;
-          const data = await withDeadline(runResearch(companyName, hint), 200_000, 'Research');
-          send({ type: 'result', data });
+          send({ type: 'result', data: await researchCandidate(companyName, confirmedCandidate, fresh) });
         } else {
-          const candidates = await withDeadline(identifyCompany(companyName), 200_000, 'Company identification');
-          if (candidates.length === 0) {
-            send({
-              type: 'result',
-              data: {
-                live: true,
-                companyName,
-                ...nullFields(),
-                note: `Couldn't confidently identify "${companyName}" — enter the figures below yourself.`,
-              },
-            });
-          } else {
-            send({ type: 'candidates', data: candidates });
-          }
+          send(await findCandidates(companyName, fresh));
         }
       } catch (error) {
         console.error('Research API error:', error);

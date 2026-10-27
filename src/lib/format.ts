@@ -37,6 +37,13 @@ export function formatNumber(value: number): string {
   return new Intl.NumberFormat(LOCALE).format(Math.round(value));
 }
 
+/** A day, e.g. "27 Oct 2026"; empty for anything that isn't a date. */
+export function formatDate(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat(LOCALE, { day: 'numeric', month: 'short', year: 'numeric' }).format(date);
+}
+
 /** Months with one decimal, e.g. "0.5 months", "1 month". */
 export function formatMonths(value: number): string {
   if (!Number.isFinite(value)) return '-';

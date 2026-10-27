@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { seedFunctionAssumptions, computeAssessment } from '@/lib/calc';
 import { DEFAULT_PARAMETERS } from '@/data/model';
-import type { CompanyInput, FunctionAssumption, Parameters } from '@/lib/types';
+import type { CompanyInput, FunctionAssumption, Parameters, SavedCompany } from '@/lib/types';
 import Stepper from '@/components/Stepper';
 import CompanyStep from '@/components/CompanyStep';
 import ResearchStep from '@/components/ResearchStep';
@@ -27,6 +27,8 @@ type Step = 0 | 1 | 2 | 3;
 export default function AssessmentWizard() {
   const [step, setStep] = useState<Step>(0);
   const [input, setInput] = useState<CompanyInput>(EMPTY_INPUT);
+  /** The company with saved research picked from the suggestions, if any. */
+  const [savedPick, setSavedPick] = useState<SavedCompany | null>(null);
   const [assumptions, setAssumptions] = useState<FunctionAssumption[]>([]);
   const [parameters, setParameters] = useState<Parameters>(DEFAULT_PARAMETERS);
 
@@ -45,8 +47,11 @@ export default function AssessmentWizard() {
         {step === 0 && (
           <CompanyStep
             initialName={input.companyName}
-            onNext={(name) => {
-              setInput({ ...input, companyName: name });
+            initialPick={savedPick}
+            onNext={(name, pick) => {
+              // Another company, or a saved one picked from the suggestions, starts a new profile.
+              if (name !== input.companyName || pick !== savedPick) setInput({ ...EMPTY_INPUT, companyName: name });
+              setSavedPick(pick);
               setStep(1);
             }}
           />
@@ -55,6 +60,7 @@ export default function AssessmentWizard() {
         {step === 1 && (
           <ResearchStep
             input={input}
+            savedPick={savedPick}
             onBack={() => setStep(0)}
             onNext={(updated) => {
               setInput(updated);
@@ -85,6 +91,7 @@ export default function AssessmentWizard() {
             onBack={() => setStep(2)}
             onRestart={() => {
               setInput(EMPTY_INPUT);
+              setSavedPick(null);
               setAssumptions([]);
               setParameters(DEFAULT_PARAMETERS);
               setStep(0);

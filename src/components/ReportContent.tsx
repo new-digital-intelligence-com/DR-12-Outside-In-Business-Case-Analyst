@@ -7,6 +7,17 @@ import AiEmployeeTag from './AiEmployeeTag';
 import AiOpportunityTable from './AiOpportunityTable';
 import { formatEur, formatFte, formatPct } from '@/lib/format';
 
+/** Says so when the figures are the illustrative example data, so the report isn't read as the
+ * company's own numbers. */
+export function ExampleDataNote({ input }: { input: CompanyInput }) {
+  if (input.source?.kind !== 'example') return null;
+  return (
+    <p className="mt-1 text-sm font-medium text-amber-700">
+      Based on illustrative example figures, not {input.companyName}&apos;s actual data.
+    </p>
+  );
+}
+
 export default function ReportContent({
   input,
   result,
@@ -26,6 +37,7 @@ export default function ReportContent({
         <p className="mt-1 text-sm text-slate-500">
           {input.industryL1} · {input.industrySegment} · {formatEur(input.revenueEur, { compact: true })} revenue
         </p>
+        <ExampleDataNote input={input} />
       </div>
       <section>
         <BusinessCaseSummary result={result} />

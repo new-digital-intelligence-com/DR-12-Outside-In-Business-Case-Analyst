@@ -35,6 +35,59 @@ export interface CompanyInput {
   avgLoadedCostPerFte: number;
   /** true once the AI research step has populated these fields */
   researched: boolean;
+  /** Where the figures came from. Unset until the company profile step is done. */
+  source?: CompanyDataSource;
+}
+
+export interface CompanyDataSource {
+  /** 'research': a new web search. 'saved': research saved from an earlier search. 'example':
+   * illustrative figures from a sample company. 'manual': typed in by the user. */
+  kind: 'research' | 'saved' | 'example' | 'manual';
+  /** What the profile step said about the figures: research notes, or why they're missing. */
+  note: string | null;
+  /** For 'saved': when that research ran (ISO date). */
+  savedAt?: string;
+  /** The company that was researched, so the search can be run again. */
+  candidate?: CompanyCandidate;
+}
+
+/** A real company that matches the typed name, found by the identification search. */
+export interface CompanyCandidate {
+  name: string;
+  location: string;
+  domain: string | null;
+  description: string;
+}
+
+export interface ResearchResponse {
+  live: boolean;
+  companyName: string;
+  revenueEur: number | null;
+  profitEur: number | null;
+  totalFte: number | null;
+  avgRevenuePerFte: number | null;
+  industryL1: string | null;
+  industrySegment: string | null;
+  avgLoadedCostPerFte: number | null;
+  note: string;
+  /** Set when this is saved research rather than a new web search: when that research ran (ISO). */
+  savedAt?: string;
+}
+
+/** One line of /api/research's newline-delimited JSON stream. */
+export type ResearchStreamEvent =
+  | { type: 'heartbeat'; elapsedMs: number }
+  /** savedAt: set when these matches come from an earlier, saved search. */
+  | { type: 'candidates'; data: CompanyCandidate[]; savedAt?: string }
+  | { type: 'result'; data: ResearchResponse };
+
+/** A company with saved research, as suggested while typing a company name (/api/research/saved). */
+export interface SavedCompany {
+  candidate: CompanyCandidate;
+  /** When its research ran (ISO). */
+  savedAt: string;
+  /** True when one of its names is the searched name, not just a name starting with it. */
+  exact: boolean;
 }
 
 export interface Parameters {

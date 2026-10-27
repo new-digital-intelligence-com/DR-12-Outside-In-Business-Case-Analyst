@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { AiEmployeeLinks, AssessmentResult, CompanyInput } from '@/lib/types';
-import ReportContent from './ReportContent';
+import ReportContent, { ExampleDataNote } from './ReportContent';
 import ExportPdfButton from './ExportPdfButton';
 import { formatEur } from '@/lib/format';
 
@@ -51,6 +51,7 @@ export default function ResultsStep({
           <p className="mt-1 text-sm text-slate-500">
             {input.industryL1} · {input.industrySegment} · {formatEur(input.revenueEur, { compact: true })} revenue
           </p>
+          <ExampleDataNote input={input} />
         </div>
         <div className="flex gap-3">
           <ExportPdfButton input={input} result={result} />

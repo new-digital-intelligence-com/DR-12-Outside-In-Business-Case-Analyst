@@ -1,5 +1,6 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import type { Browser } from 'puppeteer-core';
+import { onCloudflareWorkers } from './runtime';
 import type { AssessmentResult, CompanyInput } from './types';
 
 /*
@@ -34,10 +35,6 @@ export async function readStashedReport(token: string): Promise<StashedReport | 
     ? await (await cloudflareBindings()).PRINT_STASH.get(token)
     : readMemoryStash(token);
   return stored ? (JSON.parse(stored) as StashedReport) : null;
-}
-
-function onCloudflareWorkers(): boolean {
-  return typeof navigator !== 'undefined' && navigator.userAgent === 'Cloudflare-Workers';
 }
 
 // ---------------------------------------------------------------------------------------------

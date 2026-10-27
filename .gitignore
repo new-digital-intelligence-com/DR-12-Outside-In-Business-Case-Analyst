@@ -49,3 +49,7 @@ cloudflare-env.d.ts
 
 # claude code local tooling
 .claude/
+.playwright-mcp/
+
+# saved company research when running locally (src/lib/savedResearch.ts)
+/.data/
