@@ -196,8 +196,11 @@ completes the consent flow below (no separate "from" address). One-time setup pe
    page — it isn't stored anywhere.
 
 If the OAuth consent screen's audience is **External** and still in **Testing**, Google expires
-the refresh token after 7 days. An **Internal** app (Google Workspace accounts only) or a published
-one keeps it.
+the refresh token after 7 days; publishing the app (**In production**) stops that. An **Internal**
+app keeps the token too, but limits Google Sign-In to accounts in its own Google Workspace, so
+don't switch to it if people outside the organization sign in. While the app isn't verified,
+Google warns "Google hasn't verified this app" on the Gmail consent screen; the sending account
+can continue past it under **Advanced**.
 
 Without all three of `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GMAIL_REFRESH_TOKEN`, the
 "send via email" switch fails with an honest "not configured" error.
