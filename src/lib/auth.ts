@@ -13,9 +13,23 @@ export function readStoredSession(): Session | null {
   if (typeof window === 'undefined') return null;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Session) : null;
+    if (!raw) return null;
+    const session = JSON.parse(raw) as Session;
+    return { ...session, name: repairUtf8(session.name) };
   } catch {
     return null;
+  }
+}
+
+/** Sessions saved before the UTF-8 fix below hold names like "JÃ¼rgen"; this turns them back into "Jürgen". */
+function repairUtf8(text: string): string {
+  if (typeof text !== 'string' || !/[Â-ô][\u0080-¿]/.test(text) || /[^\u0000-ÿ]/.test(text)) {
+    return text;
+  }
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from(text, (c) => c.charCodeAt(0)));
+  } catch {
+    return text; // not UTF-8 read as Latin-1 after all
   }
 }
 
@@ -32,7 +46,9 @@ export function writeStoredSession(session: Session | null) {
  */
 export function decodeGoogleCredential(credential: string): Session {
   const payloadB64 = credential.split('.')[1];
-  const payload = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/')));
+  // atob gives one character per byte; decode those bytes as UTF-8 so names like "Jürgen" survive.
+  const bytes = Uint8Array.from(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0));
+  const payload = JSON.parse(new TextDecoder().decode(bytes));
   return {
     name: payload.name ?? payload.email,
     email: payload.email,

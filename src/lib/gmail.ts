@@ -1,3 +1,5 @@
+import { asciiFilename, encodeRfc5987 } from './reportFile';
+
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const SEND_URL = 'https://gmail.googleapis.com/gmail/v1/users/me/messages/send';
 
@@ -39,6 +41,32 @@ function toBase64Url(input: string): string {
   return bytesToBase64(new TextEncoder().encode(input)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
+/** Line breaks and other control characters would end the header early (or start a new one). */
+function headerText(value: string): string {
+  return value.replace(/[\u0000-\u001f\u007f]+/g, ' ').trim();
+}
+
+/**
+ * A header value that may hold any character: plain ASCII as is, anything else as RFC 2047
+ * encoded-words ("=?UTF-8?B?…?="), each under the 75-character limit and never splitting a character.
+ */
+function encodeHeaderValue(value: string): string {
+  const text = headerText(value);
+  if (/^[\x20-\x7e]*$/.test(text)) return text;
+  const encoder = new TextEncoder();
+  const words: string[] = [];
+  let chunk = '';
+  for (const char of text) {
+    if (chunk && encoder.encode(chunk + char).length > 45) {
+      words.push(chunk);
+      chunk = '';
+    }
+    chunk += char;
+  }
+  if (chunk) words.push(chunk);
+  return words.map((w) => `=?UTF-8?B?${bytesToBase64(encoder.encode(w))}?=`).join('\r\n ');
+}
+
 export async function sendGmail({
   to,
   subject,
@@ -54,23 +82,26 @@ export async function sendGmail({
   const boundary = `boundary_${crypto.randomUUID()}`;
 
   const parts = [
-    `To: ${to}`,
-    `Subject: ${subject}`,
+    `To: ${headerText(to)}`,
+    `Subject: ${encodeHeaderValue(subject)}`,
     'MIME-Version: 1.0',
     `Content-Type: multipart/mixed; boundary="${boundary}"`,
     '',
     `--${boundary}`,
     'Content-Type: text/html; charset=utf-8',
+    'Content-Transfer-Encoding: base64',
     '',
-    html,
+    wrapBase64(bytesToBase64(new TextEncoder().encode(html))),
   ];
 
   if (attachment) {
+    const filename = headerText(attachment.filename);
     parts.push(
       '',
       `--${boundary}`,
-      `Content-Type: ${attachment.mimeType}; name="${attachment.filename}"`,
-      `Content-Disposition: attachment; filename="${attachment.filename}"`,
+      // `name` in RFC 2047 form is what most mail clients read; `filename*` (RFC 2231) is the standard.
+      `Content-Type: ${attachment.mimeType}; name="${encodeHeaderValue(filename).replace(/\r\n /g, ' ')}"`,
+      `Content-Disposition: attachment; filename="${asciiFilename(filename)}"; filename*=UTF-8''${encodeRfc5987(filename)}`,
       'Content-Transfer-Encoding: base64',
       '',
       wrapBase64(bytesToBase64(attachment.content)),

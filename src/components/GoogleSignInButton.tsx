@@ -39,6 +39,7 @@ export default function GoogleSignInButton() {
       size: 'medium',
       type: 'standard',
       shape: 'pill',
+      locale: 'en', // match the app, not the browser's language
     });
   }, [scriptReady, signIn]);
 

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CompanyInput } from '@/lib/types';
 import { L1_INDUSTRIES, SAMPLE_INPUT, segmentsForIndustry } from '@/data/model';
-import { totalFteCalculated } from '@/lib/calc';
+import { effectiveTotalFte, totalFteCalculated } from '@/lib/calc';
 import { formatEur, formatFte } from '@/lib/format';
 import type { CompanyCandidate, ResearchResponse, ResearchStreamEvent } from '@/app/api/research/route';
 
@@ -22,6 +22,7 @@ export default function ResearchStep({
   const [candidates, setCandidates] = useState<CompanyCandidate[]>([]);
   const [note, setNote] = useState<string | null>(null);
   const [live, setLive] = useState(false);
+  const [exampleLoaded, setExampleLoaded] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [form, setForm] = useState<CompanyInput>(input);
 
@@ -52,6 +53,7 @@ export default function ResearchStep({
     setPhase('loading');
     setCandidates([]);
     setElapsedMs(0);
+    setExampleLoaded(false);
 
     async function run() {
       let settled = false;
@@ -126,6 +128,7 @@ export default function ResearchStep({
   /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   function loadExample() {
+    setExampleLoaded(true);
     setForm((f) => ({
       ...f,
       revenueEur: SAMPLE_INPUT.revenueEur,
@@ -147,6 +150,9 @@ export default function ResearchStep({
 
   const segments = segmentsForIndustry(form.industryL1);
   const calcFte = totalFteCalculated(form);
+  const usedFte = effectiveTotalFte(form);
+  // Where the figures below came from, shown beside each field.
+  const source = live ? 'AI research' : exampleLoaded ? 'Example data' : 'Manual entry';
   const costCalculated = form.revenueEur - form.profitEur;
   const canContinue =
     form.revenueEur > 0 && form.avgLoadedCostPerFte > 0 && form.industryL1 && form.industrySegment;
@@ -221,28 +227,28 @@ export default function ResearchStep({
           )}
 
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Revenue (EUR/year)" source="AI research">
+            <Field label="Revenue (EUR/year)" source={source} hint={formatEur(form.revenueEur)}>
               <NumberInput value={form.revenueEur} onChange={(v) => setForm({ ...form, revenueEur: v })} />
             </Field>
-            <Field label="Profit (EUR/year)" source="AI research">
+            <Field label="Profit (EUR/year)" source={source} hint={formatEur(form.profitEur)}>
               <NumberInput value={form.profitEur} onChange={(v) => setForm({ ...form, profitEur: v })} />
             </Field>
-            <Field label="Total FTE (leave 0 to estimate)" source="AI research">
+            <Field label="Total FTE (leave 0 to estimate)" source={source}>
               <NumberInput value={form.totalFte} onChange={(v) => setForm({ ...form, totalFte: v })} />
             </Field>
-            <Field label="Average revenue per FTE (EUR)" source="AI research">
+            <Field label="Average revenue per FTE (EUR)" source={source} hint={formatEur(form.avgRevenuePerFte)}>
               <NumberInput
                 value={form.avgRevenuePerFte}
                 onChange={(v) => setForm({ ...form, avgRevenuePerFte: v })}
               />
             </Field>
-            <Field label="Average loaded cost per FTE (EUR)" source="AI research">
+            <Field label="Average loaded cost per FTE (EUR)" source={source} hint={formatEur(form.avgLoadedCostPerFte)}>
               <NumberInput
                 value={form.avgLoadedCostPerFte}
                 onChange={(v) => setForm({ ...form, avgLoadedCostPerFte: v })}
               />
             </Field>
-            <Field label="Industry" source="AI research">
+            <Field label="Industry" source={source}>
               <select
                 value={form.industryL1}
                 onChange={(e) =>
@@ -262,7 +268,7 @@ export default function ResearchStep({
                 ))}
               </select>
             </Field>
-            <Field label="Industry segment" source="AI research">
+            <Field label="Industry segment" source={source}>
               <select
                 value={form.industrySegment}
                 onChange={(e) => setForm({ ...form, industrySegment: e.target.value })}
@@ -285,8 +291,13 @@ export default function ResearchStep({
               <dd className="font-medium text-slate-900">{formatEur(costCalculated, { compact: true })}</dd>
             </div>
             <div>
-              <dt className="text-slate-500">Total FTE (calculated from revenue)</dt>
-              <dd className="font-medium text-slate-900">{formatFte(calcFte)}</dd>
+              <dt className="text-slate-500">Total FTE used</dt>
+              <dd className="font-medium text-slate-900">{formatFte(usedFte)}</dd>
+              <dd className="mt-0.5 text-xs text-slate-500">
+                {form.totalFte > 0
+                  ? calcFte > 0 && `As entered (revenue ÷ revenue per FTE gives ${formatFte(calcFte)})`
+                  : 'Estimated: revenue ÷ revenue per FTE'}
+              </dd>
             </div>
           </dl>
 
@@ -311,7 +322,18 @@ export default function ResearchStep({
   );
 }
 
-function Field({ label, source, children }: { label: string; source: string; children: React.ReactNode }) {
+function Field({
+  label,
+  source,
+  hint,
+  children,
+}: {
+  label: string;
+  source: string;
+  /** Shown under the input, e.g. the amount with digit grouping. */
+  hint?: string;
+  children: React.ReactNode;
+}) {
   return (
     <label className="block">
       <span className="flex items-center justify-between text-xs font-medium text-slate-600">
@@ -319,6 +341,7 @@ function Field({ label, source, children }: { label: string; source: string; chi
         <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-normal text-slate-400">{source}</span>
       </span>
       {children}
+      {hint && <span className="mt-1 block text-xs text-slate-400">{hint}</span>}
     </label>
   );
 }

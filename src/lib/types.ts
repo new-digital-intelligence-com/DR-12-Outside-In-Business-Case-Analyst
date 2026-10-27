@@ -123,3 +123,23 @@ export interface AssessmentResult {
     totalAnnualValueEur: number;
   };
 }
+
+/** The public face of an NDI AI Employee — safe to send to the browser and print in a report. */
+export interface AiEmployeeSummary {
+  code: string;
+  name: string;
+  category: string;
+  tagline: string;
+  /** Demo video, when NDI has published one. */
+  videoUrl: string | null;
+}
+
+/** NDI AI Employees matched to each sub-function, as served by /api/ai-employee-links. */
+export interface AiEmployeeLinks {
+  /** Version of NDI's AI Employees catalogue the links were resolved against. */
+  catalogVersion: string;
+  /** 'live': from the AI Employees API. 'snapshot': from the copy bundled with the app. */
+  source: 'live' | 'snapshot';
+  /** Sub-function code (l2Code) → matching AI Employees, best fit first. */
+  byFunction: Record<string, AiEmployeeSummary[]>;
+}

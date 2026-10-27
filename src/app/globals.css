@@ -32,10 +32,19 @@ body {
     width: 100%;
     background: #fff !important;
   }
-  .print-hide {
+  .print-hide,
+  /* Chart tooltips sit hidden in the page; the rule above would print them as an empty box. */
+  .recharts-tooltip-wrapper {
     display: none !important;
   }
   section {
+    break-inside: avoid;
+  }
+  /* Sections longer than a page (the full AI Employees table) break between rows instead. */
+  section.print-breakable {
+    break-inside: auto;
+  }
+  tr {
     break-inside: avoid;
   }
 }

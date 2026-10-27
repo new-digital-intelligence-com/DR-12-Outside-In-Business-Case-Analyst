@@ -1,0 +1,846 @@
+{
+  "catalogVersion": "340a07771ef6ae30",
+  "checkedAt": "2026-10-26T21:59:46.989+00:00",
+  "employees": [
+    {
+      "code": "FO-01",
+      "name": "Multi-Channel Front Office Assistant",
+      "category": "Front Office Digital Assistants",
+      "tagline": "One front desk. Every channel. Always on.",
+      "videoUrl": "https://www.youtube.com/watch?v=5cPo57uzR5c"
+    },
+    {
+      "code": "FO-02",
+      "name": "Voice Front Office Assistant",
+      "category": "Front Office Digital Assistants",
+      "tagline": "Natural conversations, answered in real time.",
+      "videoUrl": null
+    },
+    {
+      "code": "FO-03",
+      "name": "Customer Care Assistant",
+      "category": "Front Office Digital Assistants",
+      "tagline": "Every customer heard, every issue handled.",
+      "videoUrl": null
+    },
+    {
+      "code": "FO-04",
+      "name": "Citizen Dialogue Assistant",
+      "category": "Front Office Digital Assistants",
+      "tagline": "Public services, accessible to everyone, anytime.",
+      "videoUrl": null
+    },
+    {
+      "code": "FO-05",
+      "name": "Real Estate Agency Customer Assistant",
+      "category": "Front Office Digital Assistants",
+      "tagline": "Turning property enquiries into viewings.",
+      "videoUrl": null
+    },
+    {
+      "code": "FO-06",
+      "name": "Restaurant and Room Service Order-Taking Assistant",
+      "category": "Front Office Digital Assistants",
+      "tagline": "Orders taken perfectly, every single time.",
+      "videoUrl": null
+    },
+    {
+      "code": "FO-07",
+      "name": "Pharmacist Assistant",
+      "category": "Front Office Digital Assistants",
+      "tagline": "Trusted guidance for every prescription question.",
+      "videoUrl": null
+    },
+    {
+      "code": "FO-08",
+      "name": "Insurance Claim Validation Assistant",
+      "category": "Front Office Digital Assistants",
+      "tagline": "Faster claims, fewer errors, happier policyholders.",
+      "videoUrl": null
+    },
+    {
+      "code": "FO-09",
+      "name": "Appointment Scheduler Assistant",
+      "category": "Front Office Digital Assistants",
+      "tagline": "The right slot, booked in seconds.",
+      "videoUrl": null
+    },
+    {
+      "code": "FO-10",
+      "name": "Demo and Sales Presentation Assistant",
+      "category": "Front Office Digital Assistants",
+      "tagline": "Always ready to pitch, perfectly on message.",
+      "videoUrl": null
+    },
+    {
+      "code": "FO-11",
+      "name": "HR Assistant",
+      "category": "Front Office Digital Assistants",
+      "tagline": "Every employee question, answered instantly.",
+      "videoUrl": "https://www.youtube.com/watch?v=JWbdrUm5Buk"
+    },
+    {
+      "code": "FO-12",
+      "name": "IT Helpdesk Assistant",
+      "category": "Front Office Digital Assistants",
+      "tagline": "First-line IT support that never sleeps.",
+      "videoUrl": "https://www.youtube.com/watch?v=2sSG7p5zrhU"
+    },
+    {
+      "code": "FO-13",
+      "name": "Social Media Content Manager",
+      "category": "Front Office Digital Assistants",
+      "tagline": "Always-on presence across every feed.",
+      "videoUrl": "http://www.youtube.com/watch?v=pBo_U18dzOA"
+    },
+    {
+      "code": "FO-14",
+      "name": "Product Configuration Sales Advisor",
+      "category": "Front Office Digital Assistants",
+      "tagline": "Customers configure and price it themselves.",
+      "videoUrl": "https://www.youtube.com/watch?v=o_mPAmZQB7k"
+    },
+    {
+      "code": "FO-15",
+      "name": "Real Estate Project Customer Assistant",
+      "category": "Front Office Digital Assistants",
+      "tagline": "Guiding buyers through every build milestone.",
+      "videoUrl": "https://www.youtube.com/watch?v=TV0iK1t0f4A"
+    },
+    {
+      "code": "FO-16",
+      "name": "Video Avatar Sales Assistant",
+      "category": "Front Office Digital Assistants",
+      "tagline": "Your always-on sales rep — face, voice and follow-through.",
+      "videoUrl": null
+    },
+    {
+      "code": "FO-17",
+      "name": "E-mail Assistant",
+      "category": "Front Office Digital Assistants",
+      "tagline": "Every inbox answered — drafted, actioned and filed.",
+      "videoUrl": "https://www.youtube.com/watch?v=zzulR6w7UTk"
+    },
+    {
+      "code": "FO-18",
+      "name": "Complaint Case Manager",
+      "category": "Front Office Digital Assistants",
+      "tagline": "Every complaint, from first e-mail to closed case.",
+      "videoUrl": "https://www.youtube.com/watch?v=AFqStAFMG5k"
+    },
+    {
+      "code": "DO-01",
+      "name": "Student Special Care Application Assistant",
+      "category": "Document Assistants",
+      "tagline": "Guiding students through special-care applications, step by step.",
+      "videoUrl": "https://www.youtube.com/watch?v=XUocvgcFV1U"
+    },
+    {
+      "code": "DO-02",
+      "name": "Proposal Writer Assistant",
+      "category": "Document Assistants",
+      "tagline": "Tailored, review-ready client proposals, drafted fast.",
+      "videoUrl": null
+    },
+    {
+      "code": "DO-03",
+      "name": "Prospectus Writer Assistant",
+      "category": "Document Assistants",
+      "tagline": "Clear, persuasive prospectus and offering documents.",
+      "videoUrl": "https://www.youtube.com/watch?v=d-3rs8DYSmw"
+    },
+    {
+      "code": "DO-04",
+      "name": "Product Description Assistant",
+      "category": "Document Assistants",
+      "tagline": "SEO-ready product descriptions for every marketplace and language.",
+      "videoUrl": "http://www.youtube.com/watch?v=GwGkT-ZoNcg"
+    },
+    {
+      "code": "DO-05",
+      "name": "Website Content Manager",
+      "category": "Document Assistants",
+      "tagline": "Talk to your website — and keep it always current.",
+      "videoUrl": "https://www.youtube.com/watch?v=PZBEXdH8Skw"
+    },
+    {
+      "code": "DO-06",
+      "name": "Document Consistency Manager",
+      "category": "Document Assistants",
+      "tagline": "One document set that agrees with itself.",
+      "videoUrl": "https://www.youtube.com/watch?v=aY2rT_hHsmo"
+    },
+    {
+      "code": "DO-07",
+      "name": "Translation Assistant",
+      "category": "Document Assistants",
+      "tagline": "Every language version of a document, always in sync.",
+      "videoUrl": "http://www.youtube.com/watch?v=Tfers7IQB6w"
+    },
+    {
+      "code": "DO-08",
+      "name": "Legal Contract Assistant",
+      "category": "Document Assistants",
+      "tagline": "Contracts drafted, reviewed and kept on-standard.",
+      "videoUrl": "http://www.youtube.com/watch?v=hvJtxRzhv5g"
+    },
+    {
+      "code": "DO-09",
+      "name": "Tax Document Preparation Assistant",
+      "category": "Document Assistants",
+      "tagline": "Tax paperwork collected, sorted and draft-ready.",
+      "videoUrl": "http://www.youtube.com/watch?v=EUY8NU3Y3ZA"
+    },
+    {
+      "code": "DO-10",
+      "name": "Office Document Expiry and Renewal Tracker",
+      "category": "Document Assistants",
+      "tagline": "Never miss a contract, licence or renewal deadline.",
+      "videoUrl": "https://www.youtube.com/watch?v=Eu3KpOu34a0"
+    },
+    {
+      "code": "DO-11",
+      "name": "Proposal QA Analyst",
+      "category": "Document Assistants",
+      "tagline": "A rigorous final quality gate for every proposal.",
+      "videoUrl": "https://www.youtube.com/watch?v=hCvLrL3J6EI"
+    },
+    {
+      "code": "DO-12",
+      "name": "Due Diligence Analyst",
+      "category": "Document Assistants",
+      "tagline": "Sharper diligence, faster, with nothing overlooked.",
+      "videoUrl": "https://www.youtube.com/watch?v=q7uw-3vzrN4"
+    },
+    {
+      "code": "DO-13",
+      "name": "Public Fund Raising Assistant",
+      "category": "Document Assistants",
+      "tagline": "From eligible programmes to assembled grant applications.",
+      "videoUrl": "http://www.youtube.com/watch?v=7WwHMBukKXo"
+    },
+    {
+      "code": "DO-14",
+      "name": "RFP Qualifier",
+      "category": "Document Assistants",
+      "tagline": "Bid or no-bid — decided in minutes, not meetings.",
+      "videoUrl": null
+    },
+    {
+      "code": "DO-15",
+      "name": "Pitch Builder",
+      "category": "Document Assistants",
+      "tagline": "From target list to branded pitchbook — end to end.",
+      "videoUrl": null
+    },
+    {
+      "code": "DO-16",
+      "name": "Earnings Reviewer",
+      "category": "Document Assistants",
+      "tagline": "Earnings call to updated model before the market reacts.",
+      "videoUrl": null
+    },
+    {
+      "code": "DO-17",
+      "name": "Model Builder",
+      "category": "Document Assistants",
+      "tagline": "DCF, LBO, comps and 3-statement models — live in Excel.",
+      "videoUrl": null
+    },
+    {
+      "code": "DO-18",
+      "name": "Market Research Analyst",
+      "category": "Document Assistants",
+      "tagline": "Sector signal, synthesised daily.",
+      "videoUrl": null
+    },
+    {
+      "code": "DO-19",
+      "name": "Valuation Reviewer",
+      "category": "Document Assistants",
+      "tagline": "Every valuation checked before it reaches the client.",
+      "videoUrl": null
+    },
+    {
+      "code": "DO-20",
+      "name": "General Ledger Reconciler",
+      "category": "Document Assistants",
+      "tagline": "Breaks found, root causes traced, sign-off staged.",
+      "videoUrl": null
+    },
+    {
+      "code": "DO-21",
+      "name": "Month-End Closer",
+      "category": "Document Assistants",
+      "tagline": "The close checklist, run end to end.",
+      "videoUrl": null
+    },
+    {
+      "code": "DO-22",
+      "name": "Statement Auditor",
+      "category": "Document Assistants",
+      "tagline": "Audit-ready statements, checked before distribution.",
+      "videoUrl": null
+    },
+    {
+      "code": "DO-23",
+      "name": "Initial Presentation Builder",
+      "category": "Document Assistants",
+      "tagline": "Your first-meeting deck, built in a dialogue.",
+      "videoUrl": "http://www.youtube.com/watch?v=-hjANVrKlEA"
+    },
+    {
+      "code": "DO-24",
+      "name": "Vendor Reconciliation",
+      "category": "Document Assistants",
+      "tagline": "Your vendor accounts agreed, difference by difference.",
+      "videoUrl": "https://www.youtube.com/watch?v=RGvHEslJLPo"
+    },
+    {
+      "code": "DO-25",
+      "name": "Bank Reconciliation",
+      "category": "Document Assistants",
+      "tagline": "Your bank balance agreed, line by line.",
+      "videoUrl": null
+    },
+    {
+      "code": "UO-01",
+      "name": "B2B Sales Outreach Assistant",
+      "category": "Unified Digital Outreach Assistants",
+      "tagline": "Your sales development rep — booking the right meetings.",
+      "videoUrl": "https://www.youtube.com/watch?v=GCrGljAvFBw"
+    },
+    {
+      "code": "UO-02",
+      "name": "B2C Sales Outreach Assistant",
+      "category": "Unified Digital Outreach Assistants",
+      "tagline": "Personalised B2C outreach that converts at scale.",
+      "videoUrl": "https://www.youtube.com/watch?v=8l3F2MzmsbY"
+    },
+    {
+      "code": "UO-03",
+      "name": "Recruiter Assistant",
+      "category": "Unified Digital Outreach Assistants",
+      "tagline": "Sourcing, screening and keeping candidates moving.",
+      "videoUrl": "https://www.youtube.com/watch?v=iLGQLUiLXgA"
+    },
+    {
+      "code": "UO-04",
+      "name": "Executive Recruiter Assistant",
+      "category": "Unified Digital Outreach Assistants",
+      "tagline": "An AI headhunter for end-to-end leadership recruitment.",
+      "videoUrl": "https://www.youtube.com/watch?v=RzQ0jIBKwV0"
+    },
+    {
+      "code": "UO-05",
+      "name": "LinkedIn Inbox Assistant",
+      "category": "Unified Digital Outreach Assistants",
+      "tagline": "Handling LinkedIn requests intelligently — and learning as it goes.",
+      "videoUrl": "https://www.youtube.com/watch?v=9KMiWa9wcc8"
+    },
+    {
+      "code": "UO-06",
+      "name": "LinkedIn Connection Manager",
+      "category": "Unified Digital Outreach Assistants",
+      "tagline": "Turning everyday contacts into LinkedIn connections, automatically.",
+      "videoUrl": "https://www.youtube.com/watch?v=As8rsadLW_I"
+    },
+    {
+      "code": "UO-07",
+      "name": "Media Planning Assistant",
+      "category": "Unified Digital Outreach Assistants",
+      "tagline": "Faster, optimised media planning across every channel.",
+      "videoUrl": "https://www.youtube.com/watch?v=prYNuzAX5GE"
+    },
+    {
+      "code": "UO-08",
+      "name": "Messaging and Group Content Manager",
+      "category": "Unified Digital Outreach Assistants",
+      "tagline": "Group posts, captured, formatted and organised by topic.",
+      "videoUrl": "https://www.youtube.com/watch?v=b6r1IwCagCs"
+    },
+    {
+      "code": "UO-09",
+      "name": "Customer Contact Information Manager",
+      "category": "Unified Digital Outreach Assistants",
+      "tagline": "Complete contact intelligence from a single starting point.",
+      "videoUrl": "https://www.youtube.com/watch?v=KfH5sLzMbhk"
+    },
+    {
+      "code": "UO-10",
+      "name": "Trademark and Domain Registration Manager",
+      "category": "Unified Digital Outreach Assistants",
+      "tagline": "The best available brand and domain name, thoroughly checked.",
+      "videoUrl": "https://www.youtube.com/watch?v=JxsVJPFr-GQ"
+    },
+    {
+      "code": "UO-11",
+      "name": "E-Commerce Bundling and Cross-Sell Optimiser",
+      "category": "Unified Digital Outreach Assistants",
+      "tagline": "Dynamic bundles and cross-sells, optimised in real time.",
+      "videoUrl": "https://www.youtube.com/watch?v=sTou82fwCjQ"
+    },
+    {
+      "code": "UO-12",
+      "name": "KYC Screener",
+      "category": "Unified Digital Outreach Assistants",
+      "tagline": "Entity files assembled, gaps flagged, escalations packaged.",
+      "videoUrl": null
+    },
+    {
+      "code": "UO-13",
+      "name": "Business Contact Maintainer",
+      "category": "Unified Digital Outreach Assistants",
+      "tagline": "Your network, personally warm — on autopilot.",
+      "videoUrl": null
+    },
+    {
+      "code": "GP-01",
+      "name": "Onboarding and Offboarding Assistant",
+      "category": "General Process Assistants",
+      "tagline": "Smooth onboarding and offboarding, fully provisioned.",
+      "videoUrl": "http://www.youtube.com/watch?v=Ff4zDNlSaME"
+    },
+    {
+      "code": "GP-02",
+      "name": "Bookkeeping Assistant",
+      "category": "General Process Assistants",
+      "tagline": "A digital accountant that books, reports and answers.",
+      "videoUrl": "https://www.youtube.com/watch?v=EIT2sVONWiQ"
+    },
+    {
+      "code": "GP-03",
+      "name": "Management Reporting Analyst",
+      "category": "General Process Assistants",
+      "tagline": "A digital controller turning data into reports and forecasts.",
+      "videoUrl": "https://www.youtube.com/watch?v=UMQRMkrqO-0"
+    },
+    {
+      "code": "GP-04",
+      "name": "Procurement Manager",
+      "category": "General Process Assistants",
+      "tagline": "Procurement from RFP to vendor recommendation.",
+      "videoUrl": null
+    },
+    {
+      "code": "GP-05",
+      "name": "Procurement Negotiator Assistant",
+      "category": "General Process Assistants",
+      "tagline": "Negotiation-ready procurement insight before every renewal.",
+      "videoUrl": "https://www.youtube.com/watch?v=Kn9wn699R8c"
+    },
+    {
+      "code": "GP-06",
+      "name": "Invoice Tracking and Payment Reminder Assistant",
+      "category": "General Process Assistants",
+      "tagline": "Every invoice tracked, every payment reminded.",
+      "videoUrl": "https://www.youtube.com/watch?v=GG7X9Jk51Bk"
+    },
+    {
+      "code": "GP-07",
+      "name": "Subscription and SaaS Cost Optimiser",
+      "category": "General Process Assistants",
+      "tagline": "Find, flag and cut wasted subscription spend.",
+      "videoUrl": "https://www.youtube.com/watch?v=_F7CWl3ZJp8"
+    },
+    {
+      "code": "GP-08",
+      "name": "Office Supplies Reordering Manager",
+      "category": "General Process Assistants",
+      "tagline": "Office supplies reordered before you run out.",
+      "videoUrl": "https://www.youtube.com/watch?v=O42RykT0ajk"
+    },
+    {
+      "code": "GP-09",
+      "name": "Inventory and Expiration Monitoring Assistant",
+      "category": "General Process Assistants",
+      "tagline": "Stock and expiry, monitored and acted on.",
+      "videoUrl": "https://www.youtube.com/watch?v=ga2bU4J0QWQ"
+    },
+    {
+      "code": "GP-10",
+      "name": "Folder Structure and Naming Compliance Assistant",
+      "category": "General Process Assistants",
+      "tagline": "Consistent folders, names and structure — by the rules.",
+      "videoUrl": "https://www.youtube.com/watch?v=UMXoIwNiKYk"
+    },
+    {
+      "code": "GP-11",
+      "name": "CRM Update Manager",
+      "category": "General Process Assistants",
+      "tagline": "Every conversation lands in the CRM, without anyone typing it in.",
+      "videoUrl": "https://www.youtube.com/watch?v=ZsGqeQ5KlAk"
+    },
+    {
+      "code": "GP-12",
+      "name": "Project Status Update Manager",
+      "category": "General Process Assistants",
+      "tagline": "Status reports that write themselves from the project’s own chatter.",
+      "videoUrl": "https://www.youtube.com/watch?v=ULwHdKyGYFM"
+    },
+    {
+      "code": "GP-14",
+      "name": "Customer Onboarding Automation Assistant",
+      "category": "General Process Assistants",
+      "tagline": "Frictionless post-sale customer onboarding.",
+      "videoUrl": "https://www.youtube.com/watch?v=lGdmpJn5MtE"
+    },
+    {
+      "code": "GP-15",
+      "name": "Engineer Field Force Manager",
+      "category": "General Process Assistants",
+      "tagline": "Coordinating the field engineering force end to end.",
+      "videoUrl": "https://www.youtube.com/watch?v=BWtiY_vr6TM"
+    },
+    {
+      "code": "GP-16",
+      "name": "Field Engineer Support Assistant",
+      "category": "General Process Assistants",
+      "tagline": "Expert support in the field engineer’s pocket.",
+      "videoUrl": null
+    },
+    {
+      "code": "GP-17",
+      "name": "Compliance and Risk Auditor",
+      "category": "General Process Assistants",
+      "tagline": "Continuous compliance auditing, audit-ready by default.",
+      "videoUrl": "https://www.youtube.com/watch?v=j-4QCKsdBcs"
+    },
+    {
+      "code": "GP-18",
+      "name": "Quote Creation Assistant",
+      "category": "General Process Assistants",
+      "tagline": "Straightforward quotes, answered the same day.",
+      "videoUrl": "https://www.youtube.com/watch?v=vlefM6nJRwk"
+    },
+    {
+      "code": "GP-19",
+      "name": "Access Tools and Subscription Manager",
+      "category": "General Process Assistants",
+      "tagline": "The right tools and access, provisioned and tracked.",
+      "videoUrl": "https://www.youtube.com/watch?v=Dh5HTj6hLx0"
+    },
+    {
+      "code": "GP-20",
+      "name": "Solution and Cost Architect",
+      "category": "General Process Assistants",
+      "tagline": "Engineered solutions, sized and costed for tender.",
+      "videoUrl": "http://www.youtube.com/watch?v=D5WXESLya0w"
+    },
+    {
+      "code": "GP-21",
+      "name": "IT Resource Provisioning Manager",
+      "category": "General Process Assistants",
+      "tagline": "IT resources provisioned the moment they’re needed.",
+      "videoUrl": "https://www.youtube.com/watch?v=xI1Mav_-HUY"
+    },
+    {
+      "code": "GP-22",
+      "name": "Copyright Licensing Assistant",
+      "category": "General Process Assistants",
+      "tagline": "Rights cleared before content goes to print.",
+      "videoUrl": "https://www.youtube.com/watch?v=aEu_4_Ryib4"
+    },
+    {
+      "code": "GP-23",
+      "name": "HR Data Validation Assistant",
+      "category": "General Process Assistants",
+      "tagline": "Employee data confirmed at the source, kept current.",
+      "videoUrl": "http://www.youtube.com/watch?v=vl3K9T4I9jQ"
+    },
+    {
+      "code": "DR-01",
+      "name": "Sales Intelligence Analyst",
+      "category": "Data and Research Analysts",
+      "tagline": "Market and account intelligence that tells sales where to focus.",
+      "videoUrl": "https://www.youtube.com/watch?v=OsdYsfA6k9o"
+    },
+    {
+      "code": "DR-02",
+      "name": "Sales and Revenue Forecast Analyst",
+      "category": "Data and Research Analysts",
+      "tagline": "Always-current sales and revenue forecasts, validated in dialogue.",
+      "videoUrl": "https://www.youtube.com/watch?v=euna_5D36zs"
+    },
+    {
+      "code": "DR-06",
+      "name": "Benchmark Scout",
+      "category": "Data and Research Analysts",
+      "tagline": "A living table of benchmarks, from every source that publishes them.",
+      "videoUrl": "https://www.youtube.com/watch?v=I6QIxnHBAp0"
+    },
+    {
+      "code": "DR-08",
+      "name": "Competitive Intelligence Analyst",
+      "category": "Data and Research Analysts",
+      "tagline": "Real-time competitive intelligence, structured into battlecards.",
+      "videoUrl": "https://www.youtube.com/watch?v=3CgZkBA4J7U"
+    },
+    {
+      "code": "DR-09",
+      "name": "Win-Loss Analyst",
+      "category": "Data and Research Analysts",
+      "tagline": "Every win and loss captured, analysed and learned from.",
+      "videoUrl": null
+    },
+    {
+      "code": "DR-10",
+      "name": "Company People Inventory Tracker",
+      "category": "Data and Research Analysts",
+      "tagline": "People movement at any company, tracked and interpreted.",
+      "videoUrl": "https://www.youtube.com/watch?v=5ehDD36GOnU"
+    },
+    {
+      "code": "DR-11",
+      "name": "Company Org Chart Tracker",
+      "category": "Data and Research Analysts",
+      "tagline": "Any company’s org chart, reconstructed from public signals.",
+      "videoUrl": "https://www.youtube.com/watch?v=H0Hkujw2WOE"
+    },
+    {
+      "code": "DR-12",
+      "name": "Outside-In Business Case Analyst",
+      "category": "Data and Research Analysts",
+      "tagline": "A holistic AI business case for any target company.",
+      "videoUrl": null
+    },
+    {
+      "code": "DR-13",
+      "name": "Customer Care Quality Analyst",
+      "category": "Data and Research Analysts",
+      "tagline": "Benchmark your own and competitors’ service channels.",
+      "videoUrl": null
+    },
+    {
+      "code": "DR-14",
+      "name": "Data Collection Assistant",
+      "category": "Data and Research Analysts",
+      "tagline": "The answers collected, the document finished.",
+      "videoUrl": "https://www.youtube.com/watch?v=GCxo7C-4hg0"
+    },
+    {
+      "code": "DR-15",
+      "name": "Event and Trade Fair Research Assistant",
+      "category": "Data and Research Analysts",
+      "tagline": "The right events and trade fairs, always on your radar.",
+      "videoUrl": "https://www.youtube.com/watch?v=SQ0wnSJ-frI"
+    },
+    {
+      "code": "DR-16",
+      "name": "Person Profile Analyst",
+      "category": "Data and Research Analysts",
+      "tagline": "A structured dossier on any person, from public data.",
+      "videoUrl": "https://www.youtube.com/watch?v=tiDrxb60DPQ"
+    },
+    {
+      "code": "DR-17",
+      "name": "Data Entry Tracking Analyst",
+      "category": "Data and Research Analysts",
+      "tagline": "A compliance dashboard for who has updated what, on time.",
+      "videoUrl": "https://www.youtube.com/watch?v=n3tD4y0FVDE"
+    },
+    {
+      "code": "DR-19",
+      "name": "Acquisition Target Scout",
+      "category": "Data and Research Analysts",
+      "tagline": "Surfacing and screening the right acquisition targets.",
+      "videoUrl": "https://www.youtube.com/watch?v=8LJAFYmDNfM"
+    },
+    {
+      "code": "DR-20",
+      "name": "Generative Engine Optimisation (GEO) Analyst",
+      "category": "Data and Research Analysts",
+      "tagline": "How your brand shows up when buyers ask AI.",
+      "videoUrl": "https://www.youtube.com/watch?v=uFhnTAezREI"
+    },
+    {
+      "code": "DR-21",
+      "name": "RFP Scout",
+      "category": "Data and Research Analysts",
+      "tagline": "Never miss a tender — found, fetched and filed.",
+      "videoUrl": "http://www.youtube.com/watch?v=vtuOjICjFhU"
+    },
+    {
+      "code": "DR-22",
+      "name": "Company Profile Analyst",
+      "category": "Data and Research Analysts",
+      "tagline": "Every target company, profiled to your template.",
+      "videoUrl": null
+    },
+    {
+      "code": "KT-01",
+      "name": "Corporate Knowledge Assistant",
+      "category": "Knowledge, Training and Education Assistants",
+      "tagline": "A central knowledge assistant across channels using communication contents",
+      "videoUrl": null
+    },
+    {
+      "code": "KT-02",
+      "name": "Knowledge Trainer Assistant",
+      "category": "Knowledge, Training and Education Assistants",
+      "tagline": "Turning company knowledge into effective training.",
+      "videoUrl": "https://www.youtube.com/watch?v=2RjQ4W_Zixg"
+    },
+    {
+      "code": "KT-03",
+      "name": "Interaction Quality Analyst",
+      "category": "Knowledge, Training and Education Assistants",
+      "tagline": "Every interaction from your own team, reviewed and scored.",
+      "videoUrl": "https://www.youtube.com/watch?v=Z30m39xJDqQ"
+    },
+    {
+      "code": "KT-04",
+      "name": "Team Culture Analyst",
+      "category": "Knowledge, Training and Education Assistants",
+      "tagline": "Culture you can see, without watching individuals.",
+      "videoUrl": null
+    },
+    {
+      "code": "KT-05",
+      "name": "Sales and Client Interaction Trainer",
+      "category": "Knowledge, Training and Education Assistants",
+      "tagline": "Sharper sales and client conversations through practice.",
+      "videoUrl": "https://youtu.be/BliC_0kbvHs"
+    },
+    {
+      "code": "KT-06",
+      "name": "Course Teaching Assistant",
+      "category": "Knowledge, Training and Education Assistants",
+      "tagline": "An interactive digital teacher for every learner.",
+      "videoUrl": "https://www.youtube.com/watch?v=nxXhzi4FB4g"
+    },
+    {
+      "code": "KT-07",
+      "name": "Sales FAQ Manager",
+      "category": "Knowledge, Training and Education Assistants",
+      "tagline": "Client questions captured once, answered forever.",
+      "videoUrl": null
+    },
+    {
+      "code": "KT-08",
+      "name": "Exam Grading Assistant",
+      "category": "Knowledge, Training and Education Assistants",
+      "tagline": "Define it once. Grade every paper the same way.",
+      "videoUrl": null
+    },
+    {
+      "code": "KT-09",
+      "name": "AI Enablement Agent",
+      "category": "Knowledge, Training and Education Assistants",
+      "tagline": "Explore, adapt and use proven AI use cases.",
+      "videoUrl": "https://www.youtube.com/watch?v=-k6TsCm6eeU"
+    },
+    {
+      "code": "SD-01",
+      "name": "Product Owner Assistant",
+      "category": "Software Development Lifecycle Assistants",
+      "tagline": "Keeping the product vision, backlog and priorities on track.",
+      "videoUrl": "https://www.youtube.com/watch?v=JVWndryW5iA"
+    },
+    {
+      "code": "SD-02",
+      "name": "Project Manager Assistant",
+      "category": "Software Development Lifecycle Assistants",
+      "tagline": "Keeping projects planned, tracked and moving.",
+      "videoUrl": "https://www.youtube.com/watch?v=uqSxkq9GwfE"
+    },
+    {
+      "code": "SD-03",
+      "name": "Test Manager Assistant",
+      "category": "Software Development Lifecycle Assistants",
+      "tagline": "Test planning, coverage and quality, organised.",
+      "videoUrl": "https://www.youtube.com/watch?v=V5G2vpgmHr8"
+    },
+    {
+      "code": "SD-04",
+      "name": "Developer Assistant",
+      "category": "Software Development Lifecycle Assistants",
+      "tagline": "Helping developers build, review and ship faster.",
+      "videoUrl": "https://www.youtube.com/watch?v=JWQbwT2x5Xc"
+    },
+    {
+      "code": "SD-05",
+      "name": "Solution Architect",
+      "category": "Software Development Lifecycle Assistants",
+      "tagline": "Turning approved stories into a technical architecture anyone can build against.",
+      "videoUrl": "https://www.youtube.com/watch?v=OVrs49VtNYc"
+    },
+    {
+      "code": "SD-06",
+      "name": "AI Employee Onboarding Assistant",
+      "category": "Software Development Lifecycle Assistants",
+      "tagline": "Implementing and onboarding new AI employees with customers.",
+      "videoUrl": "https://www.youtube.com/watch?v=LJRMI0Y4qpk"
+    },
+    {
+      "code": "SD-07",
+      "name": "Requirements Discovery Assistant",
+      "category": "Software Development Lifecycle Assistants",
+      "tagline": "Discovering process requirements straight from the conversation.",
+      "videoUrl": "https://www.youtube.com/watch?v=hR6s6qZB7Qs"
+    },
+    {
+      "code": "PA-01",
+      "name": "Calendar Meeting Personal Assistant",
+      "category": "Personal Assistants",
+      "tagline": "Your calendar and meetings, intelligently managed.",
+      "videoUrl": "https://www.youtube.com/watch?v=9_cKf3vHYh0"
+    },
+    {
+      "code": "PA-02",
+      "name": "E-mail Personal Assistant",
+      "category": "Personal Assistants",
+      "tagline": "Inbox triaged, drafted and under control.",
+      "videoUrl": "https://www.youtube.com/watch?v=5E0mlcHYIkA"
+    },
+    {
+      "code": "PA-03",
+      "name": "Task Manager Personal Assistant",
+      "category": "Personal Assistants",
+      "tagline": "Tasks captured, assigned and tracked across your groups.",
+      "videoUrl": "https://www.youtube.com/watch?v=tWwebOhMFL0"
+    },
+    {
+      "code": "PA-04",
+      "name": "Messenger Personal Assistant",
+      "category": "Personal Assistants",
+      "tagline": "All your WhatsApp content, searchable and answerable.",
+      "videoUrl": null
+    },
+    {
+      "code": "PA-05",
+      "name": "Voice Personal Assistant",
+      "category": "Personal Assistants",
+      "tagline": "A hands-free voice assistant for everyday tasks.",
+      "videoUrl": "https://www.youtube.com/watch?v=uThIpb4nKV8"
+    },
+    {
+      "code": "PA-06",
+      "name": "Meeting Moderator Assistant",
+      "category": "Personal Assistants",
+      "tagline": "Keeping meetings organised, followed up and connected.",
+      "videoUrl": "https://www.youtube.com/watch?v=u50Pnb0wQo0"
+    },
+    {
+      "code": "PA-07",
+      "name": "Relationship Organiser",
+      "category": "Personal Assistants",
+      "tagline": "A complete record of your key relationships and conversations.",
+      "videoUrl": "https://www.youtube.com/watch?v=YG3_QZFleVA"
+    },
+    {
+      "code": "PA-08",
+      "name": "Meeting Preparer",
+      "category": "Personal Assistants",
+      "tagline": "Walk into every meeting fully briefed.",
+      "videoUrl": null
+    },
+    {
+      "code": "FO-02a",
+      "name": "Voice Front Office Assistant - Arabic",
+      "category": "Front Office Digital Assistants",
+      "tagline": "",
+      "videoUrl": null
+    }
+  ]
+}

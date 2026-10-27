@@ -27,7 +27,11 @@ Then open http://localhost:3000.
 
 ## Live deployment
 
-Deployed to Cloudflare Workers (via `@opennextjs/cloudflare`) at:
+The current production version runs on Railway:
+
+**https://outside-in-assessment-production.up.railway.app**
+
+This repo is also set up for Cloudflare Workers (via `@opennextjs/cloudflare`), deployed at:
 
 **https://outside-in-assessment.new-digital-intelligence.workers.dev**
 
@@ -88,12 +92,37 @@ Two integrations are real but need a credential only you can provide:
    honestly reports "not connected" and lets the user fill in figures themselves (with a "load
    illustrative example data" shortcut for demos).
 2. **PDF delivery** — "Download PDF" opens a dialog (`src/components/PdfDeliveryDialog.tsx`) with
-   two independent switches: "Download now" (the browser's native print-to-PDF via `window.print()`
-   with a print stylesheet in `globals.css` — no fragile client-side canvas/color-parsing
-   dependency) and "Send via email", which sends via the Gmail API as the signed-in Google account
+   two independent switches: "Download now" (`src/app/api/generate-pdf/route.ts` has a headless
+   browser print the report page `/print/[token]` with the print stylesheet in `globals.css`; see
+   `src/lib/pdf.ts`) and "Send via email", which sends via the Gmail API as the signed-in Google account
    (`src/app/api/send-report/route.ts`, `src/lib/gmail.ts`). Needs `GOOGLE_CLIENT_ID`,
    `GOOGLE_CLIENT_SECRET` and `GMAIL_REFRESH_TOKEN` — see "Send via email (Gmail API)" below. Without
    them, that path honestly reports "not configured" instead of pretending to send.
+
+## NDI AI Employees
+
+The results page and the PDF link every AI opportunity (each of the 65 sub-functions) to the NDI AI
+Employees that take on its work: the best fit in the Top 10 table, and up to three per sub-function
+in "NDI AI Employees for every opportunity".
+
+- **Which AI Employees fit which sub-function** is curated by hand in `src/data/aiEmployeeMap.ts`,
+  best fit first, with spare candidates. Update it when NDI adds or renames AI Employees.
+- **Names, taglines and demo links** come from NDI's AI Employees catalogue, served by the AI Sales
+  Coach at `/api/ai-employees`. `src/lib/aiEmployees.ts` reads it server-side with the secret
+  `AI_EMPLOYEES_API_KEY` (never from the browser), about 5 minutes after the Coach's next hourly
+  check of NDI's Drive (`nextCheckAt`), and sends the last `version` as an ETag so an unchanged
+  catalogue costs an empty 304. The browser gets public fields only, via `/api/ai-employee-links`.
+- **AI Employees still marked "Concept"** (not built yet) are never shown; the next candidate in
+  the map takes their place.
+- **Without the key**, or while the Coach can't be reached, the app uses the copy bundled in
+  `src/data/ai-employees-snapshot.json` (public fields only). Refresh it with:
+
+  ```bash
+  AI_EMPLOYEES_API_KEY=<key> npm run ai-employees:snapshot
+  ```
+
+  To keep the links live in production, set `AI_EMPLOYEES_API_KEY` in the deployment's
+  environment (the same value as in the Sales Coach).
 
 ## Google Sign-In (real, optional)
 

@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { gmailConfigured, sendGmail } from '@/lib/gmail';
 import { generateReportPdf } from '@/lib/pdf';
+import { reportFilename } from '@/lib/reportFile';
 import type { AssessmentResult, CompanyInput } from '@/lib/types';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** The company name is typed by whoever calls this, so it goes into the email as text, never as markup. */
+function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+}
 
 export async function POST(req: NextRequest) {
   const body = (await req.json().catch(() => null)) as
@@ -30,7 +36,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const companyName = body.input.companyName;
+  const companyName = String(body.input.companyName ?? '');
 
   try {
     const pdfBytes = await generateReportPdf({ origin: req.nextUrl.origin, input: body.input, result: body.result });
@@ -38,13 +44,13 @@ export async function POST(req: NextRequest) {
     await sendGmail({
       to: email,
       subject: `Your AI Opportunity Assessment — ${companyName}`,
-      html: `<p>Thanks for requesting the AI Opportunity Assessment for <strong>${companyName}</strong>.</p><p>Your PDF is attached.</p>${
+      html: `<p>Thanks for requesting the AI Opportunity Assessment for <strong>${escapeHtml(companyName)}</strong>.</p><p>Your PDF is attached.</p>${
         consent
           ? '<p style="color:#64748b;font-size:12px;">You agreed to be contacted by NDI and Pioneers.</p>'
           : ''
       }`,
       attachment: {
-        filename: `${companyName} - AI Opportunity Assessment.pdf`,
+        filename: reportFilename(companyName),
         mimeType: 'application/pdf',
         content: pdfBytes,
       },

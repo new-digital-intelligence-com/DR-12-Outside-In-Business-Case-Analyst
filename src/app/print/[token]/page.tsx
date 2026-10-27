@@ -1,9 +1,10 @@
 import { readStashedReport } from '@/lib/pdf';
+import { getAiEmployeeLinks } from '@/lib/aiEmployees';
 import ReportContent from '@/components/ReportContent';
 
 export default async function PrintPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-  const stashed = await readStashedReport(token);
+  const [stashed, aiEmployees] = await Promise.all([readStashedReport(token), getAiEmployeeLinks()]);
 
   if (!stashed) {
     // Wrapped in #report-root, same as ReportContent — globals.css's print stylesheet hides
@@ -15,5 +16,5 @@ export default async function PrintPage({ params }: { params: Promise<{ token: s
     );
   }
 
-  return <ReportContent input={stashed.input} result={stashed.result} />;
+  return <ReportContent input={stashed.input} result={stashed.result} aiEmployees={aiEmployees} />;
 }

@@ -60,11 +60,15 @@ export default function FteMappingStep({ assumptions, parameters, totalFte, onBa
       </div>
 
       <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
-        <label className="flex items-center justify-between text-sm font-medium text-slate-700">
+        <label
+          htmlFor="strategic-weighting"
+          className="flex items-center justify-between text-sm font-medium text-slate-700"
+        >
           Strategic importance weighting (global)
           <span className="text-slate-500">{formatPct(params.strategicImportanceWeightingPct)}</span>
         </label>
         <input
+          id="strategic-weighting"
           type="range"
           min={0}
           max={1}
@@ -87,7 +91,9 @@ export default function FteMappingStep({ assumptions, parameters, totalFte, onBa
           return (
             <div key={l1Code} className="overflow-hidden rounded-lg border border-slate-200 bg-white">
               <button
+                type="button"
                 onClick={() => toggle(l1Code)}
+                aria-expanded={isOpen}
                 className="flex w-full items-center justify-between px-4 py-3 text-left"
               >
                 <span className="text-sm font-semibold text-slate-800">
@@ -106,8 +112,11 @@ export default function FteMappingStep({ assumptions, parameters, totalFte, onBa
                           <p className="text-xs text-slate-400">{formatPct(row.pctFte, 1)} of workforce (benchmark)</p>
                         </div>
                         <div className="sm:col-span-2">
-                          <label className="text-[11px] font-medium text-slate-500">FTE count</label>
+                          <label htmlFor={`fte-${f.l2Code}`} className="text-[11px] font-medium text-slate-500">
+                            FTE count
+                          </label>
                           <input
+                            id={`fte-${f.l2Code}`}
                             type="number"
                             min={0}
                             step={0.1}
@@ -117,11 +126,15 @@ export default function FteMappingStep({ assumptions, parameters, totalFte, onBa
                           />
                         </div>
                         <div className="sm:col-span-3">
-                          <label className="flex items-center justify-between text-[11px] font-medium text-slate-500">
+                          <label
+                            htmlFor={`ai-${f.l2Code}`}
+                            className="flex items-center justify-between text-[11px] font-medium text-slate-500"
+                          >
                             AI capability
                             <span>{formatPct(row.aiCapabilityPct)}</span>
                           </label>
                           <input
+                            id={`ai-${f.l2Code}`}
                             type="range"
                             min={0}
                             max={1}
@@ -132,11 +145,15 @@ export default function FteMappingStep({ assumptions, parameters, totalFte, onBa
                           />
                         </div>
                         <div className="sm:col-span-2">
-                          <label className="flex items-center justify-between text-[11px] font-medium text-slate-500">
+                          <label
+                            htmlFor={`si-${f.l2Code}`}
+                            className="flex items-center justify-between text-[11px] font-medium text-slate-500"
+                          >
                             Strategic importance
-                            <span>{signedPct(row.strategicImportance)}</span>
+                            <span>{formatPct(row.strategicImportance, 0, { signed: true })}</span>
                           </label>
                           <input
+                            id={`si-${f.l2Code}`}
                             type="range"
                             min={-1}
                             max={1}
@@ -156,7 +173,7 @@ export default function FteMappingStep({ assumptions, parameters, totalFte, onBa
         })}
       </div>
 
-      <div className="sticky bottom-0 mt-6 flex gap-3 bg-gradient-to-t from-slate-50 via-slate-50 to-transparent py-4">
+      <div className="sticky bottom-0 mt-6 flex gap-3 border-t border-slate-200 bg-slate-50 py-4">
         <button
           onClick={onBack}
           className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
@@ -176,9 +193,4 @@ export default function FteMappingStep({ assumptions, parameters, totalFte, onBa
 
 function round1(n: number) {
   return Math.round(n * 10) / 10;
-}
-
-function signedPct(n: number) {
-  const pct = Math.round(n * 100);
-  return `${pct > 0 ? '+' : ''}${pct}%`;
 }

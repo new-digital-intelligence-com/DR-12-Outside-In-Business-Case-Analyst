@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { AssessmentResult, CompanyInput } from '@/lib/types';
+import { reportFilename } from '@/lib/reportFile';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -48,9 +49,13 @@ async function downloadPdf(input: CompanyInput, result: AssessmentResult) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${input.companyName} - AI Opportunity Assessment.pdf`;
+  a.download = reportFilename(input.companyName);
+  // Firefox only follows a click on a link that's in the page, and revoking the URL straight away
+  // can cancel the download before the browser has read the file.
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 export default function PdfDeliveryDialog({
@@ -143,9 +148,12 @@ export default function PdfDeliveryDialog({
       <div
         role="dialog"
         aria-modal="true"
+        aria-labelledby="pdf-dialog-title"
         className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
       >
-        <h3 className="text-base font-semibold text-slate-900">Get your assessment PDF</h3>
+        <h3 id="pdf-dialog-title" className="text-base font-semibold text-slate-900">
+          Get your assessment PDF
+        </h3>
         <p className="mt-1 text-sm text-slate-500">Choose how you&apos;d like to receive it.</p>
 
         <div className="mt-5 space-y-4">
@@ -167,6 +175,7 @@ export default function PdfDeliveryDialog({
             </div>
             <input
               type="email"
+              aria-label="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={!emailOn}

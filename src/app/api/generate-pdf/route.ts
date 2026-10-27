@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateReportPdf } from '@/lib/pdf';
+import { attachmentDisposition, reportFilename } from '@/lib/reportFile';
 import type { AssessmentResult, CompanyInput } from '@/lib/types';
 
 export async function POST(req: NextRequest) {
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
     return new NextResponse(pdfBytes as unknown as BodyInit, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${body.input.companyName} - AI Opportunity Assessment.pdf"`,
+        'Content-Disposition': attachmentDisposition(reportFilename(body.input.companyName)),
       },
     });
   } catch (err) {

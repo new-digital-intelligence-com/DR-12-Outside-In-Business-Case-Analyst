@@ -1,11 +1,13 @@
 'use client';
 
 import type { AssessmentResult } from '@/lib/types';
-import { formatEur, formatFte } from '@/lib/format';
+import { formatEur, formatFte, formatMonths } from '@/lib/format';
 
 export default function BusinessCaseSummary({ result }: { result: AssessmentResult }) {
   const { totals } = result;
-  const paybackMonths = totals.implementationCostEur / (totals.totalAnnualValueEur / 12 || 1);
+  // No positive annual value means the implementation cost is never paid back.
+  const paybackMonths =
+    totals.totalAnnualValueEur > 0 ? totals.implementationCostEur / (totals.totalAnnualValueEur / 12) : NaN;
 
   const tiles = [
     { label: 'Total annual value', value: formatEur(totals.totalAnnualValueEur, { compact: true }) },
@@ -13,7 +15,7 @@ export default function BusinessCaseSummary({ result }: { result: AssessmentResu
     { label: 'Revenue uplift / yr', value: formatEur(totals.revenueUpliftEur, { compact: true }) },
     { label: 'Target AI FTE', value: formatFte(totals.targetAiFte) },
     { label: 'One-time implementation cost', value: formatEur(totals.implementationCostEur, { compact: true }) },
-    { label: 'Approx. payback', value: `${paybackMonths.toFixed(1)} months` },
+    { label: 'Approx. payback', value: formatMonths(paybackMonths) },
   ];
 
   return (

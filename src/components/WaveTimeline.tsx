@@ -12,7 +12,9 @@ export default function WaveTimeline({ waves }: { waves: WaveSummary[] }) {
         <div key={w.wave} className="grid grid-cols-1 gap-2 sm:grid-cols-12 sm:items-center">
           <div className="sm:col-span-2">
             <p className="text-sm font-medium text-slate-800">Wave {w.wave}</p>
-            <p className="text-xs text-slate-400">{w.functionCount} functions</p>
+            <p className="text-xs text-slate-400">
+              {w.functionCount} {w.functionCount === 1 ? 'function' : 'functions'}
+            </p>
           </div>
           <div className="sm:col-span-6">
             <div className="relative h-5 rounded-full bg-slate-100">

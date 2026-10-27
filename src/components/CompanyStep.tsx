@@ -27,8 +27,11 @@ export default function CompanyStep({
         className="mt-6 space-y-4"
       >
         <div>
-          <label className="text-xs font-medium text-slate-600">Company name</label>
+          <label htmlFor="company-name" className="text-xs font-medium text-slate-600">
+            Company name
+          </label>
           <input
+            id="company-name"
             autoFocus
             value={name}
             onChange={(e) => setName(e.target.value)}
