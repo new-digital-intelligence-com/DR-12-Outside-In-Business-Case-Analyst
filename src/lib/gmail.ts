@@ -1,70 +1,21 @@
-import { asciiFilename, encodeRfc5987 } from './reportFile';
-
-const TOKEN_URL = 'https://oauth2.googleapis.com/token';
-const SEND_URL = 'https://gmail.googleapis.com/gmail/v1/users/me/messages/send';
-
-export function gmailConfigured() {
-  return Boolean(
-    process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GMAIL_REFRESH_TOKEN,
-  );
-}
-
-async function getAccessToken(): Promise<string> {
-  const res = await fetch(TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: process.env.GOOGLE_CLIENT_ID!,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-      refresh_token: process.env.GMAIL_REFRESH_TOKEN!,
-      grant_type: 'refresh_token',
-    }),
-  });
-  if (!res.ok) {
-    throw new Error(`Failed to refresh Gmail access token: ${await res.text().catch(() => res.statusText)}`);
-  }
-  const data = (await res.json()) as { access_token: string };
-  return data.access_token;
-}
-
-function bytesToBase64(bytes: Uint8Array): string {
-  let binary = '';
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary);
-}
-
-function wrapBase64(base64: string): string {
-  return base64.match(/.{1,76}/g)?.join('\r\n') ?? base64;
-}
-
-function toBase64Url(input: string): string {
-  return bytesToBase64(new TextEncoder().encode(input)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-/** Line breaks and other control characters would end the header early (or start a new one). */
-function headerText(value: string): string {
-  return value.replace(/[\u0000-\u001f\u007f]+/g, ' ').trim();
-}
-
-/**
- * A header value that may hold any character: plain ASCII as is, anything else as RFC 2047
- * encoded-words ("=?UTF-8?B?…?="), each under the 75-character limit and never splitting a character.
+/*
+ * "Send via email" goes out through Gmail's SMTP server, signed in as GMAIL_USER with an app
+ * password of that Google account (GMAIL_APP_PASSWORD), so the emails come from that address.
+ * SMTP needs a Node.js host (Railway, local dev): Cloudflare Workers can't send it.
  */
-function encodeHeaderValue(value: string): string {
-  const text = headerText(value);
-  if (/^[\x20-\x7e]*$/.test(text)) return text;
-  const encoder = new TextEncoder();
-  const words: string[] = [];
-  let chunk = '';
-  for (const char of text) {
-    if (chunk && encoder.encode(chunk + char).length > 45) {
-      words.push(chunk);
-      chunk = '';
-    }
-    chunk += char;
-  }
-  if (chunk) words.push(chunk);
-  return words.map((w) => `=?UTF-8?B?${bytesToBase64(encoder.encode(w))}?=`).join('\r\n ');
+
+const SMTP_HOST = 'smtp.gmail.com';
+const SMTP_PORT = 465; // SMTP over TLS
+
+function smtpAuth(): { user: string; pass: string } | null {
+  const user = process.env.GMAIL_USER?.trim();
+  // Google shows app passwords in groups of four ("abcd efgh ijkl mnop"); the spaces aren't part of it.
+  const pass = process.env.GMAIL_APP_PASSWORD?.replace(/\s+/g, '');
+  return user && pass ? { user, pass } : null;
+}
+
+export function gmailConfigured(): boolean {
+  return smtpAuth() !== null;
 }
 
 export async function sendGmail({
@@ -77,49 +28,53 @@ export async function sendGmail({
   subject: string;
   html: string;
   attachment?: { filename: string; mimeType: string; content: Uint8Array };
-}) {
-  const accessToken = await getAccessToken();
-  const boundary = `boundary_${crypto.randomUUID()}`;
+}): Promise<void> {
+  const auth = smtpAuth();
+  if (!auth) throw new Error('GMAIL_USER and GMAIL_APP_PASSWORD are not set.');
 
-  const parts = [
-    `To: ${headerText(to)}`,
-    `Subject: ${encodeHeaderValue(subject)}`,
-    'MIME-Version: 1.0',
-    `Content-Type: multipart/mixed; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset=utf-8',
-    'Content-Transfer-Encoding: base64',
-    '',
-    wrapBase64(bytesToBase64(new TextEncoder().encode(html))),
-  ];
+  // Loaded at run time, not bundled, for the same reason as puppeteer in pdf.ts: Cloudflare
+  // builds mustn't pull nodemailer into the Worker.
+  const moduleName = process.env.NODEMAILER_PACKAGE || 'nodemailer';
+  const { createTransport } = (await import(
+    /* webpackIgnore: true */ moduleName
+  )) as typeof import('nodemailer');
 
-  if (attachment) {
-    const filename = headerText(attachment.filename);
-    parts.push(
-      '',
-      `--${boundary}`,
-      // `name` in RFC 2047 form is what most mail clients read; `filename*` (RFC 2231) is the standard.
-      `Content-Type: ${attachment.mimeType}; name="${encodeHeaderValue(filename).replace(/\r\n /g, ' ')}"`,
-      `Content-Disposition: attachment; filename="${asciiFilename(filename)}"; filename*=UTF-8''${encodeRfc5987(filename)}`,
-      'Content-Transfer-Encoding: base64',
-      '',
-      wrapBase64(bytesToBase64(attachment.content)),
-    );
-  }
-
-  parts.push('', `--${boundary}--`);
-
-  const res = await fetch(SEND_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ raw: toBase64Url(parts.join('\r\n')) }),
+  const transport = createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: true,
+    auth,
+    // Give up within seconds, not minutes, when the mail server can't be reached.
+    connectionTimeout: 15_000,
+    greetingTimeout: 15_000,
+    socketTimeout: 60_000,
   });
 
-  if (!res.ok) {
-    throw new Error(`Gmail API error: ${await res.text().catch(() => res.statusText)}`);
+  try {
+    await transport.sendMail({
+      from: auth.user,
+      // An address object, so what the visitor typed is never parsed as a list of addresses.
+      to: { name: '', address: to },
+      subject,
+      html,
+      attachments: attachment
+        ? [{ filename: attachment.filename, content: Buffer.from(attachment.content), contentType: attachment.mimeType }]
+        : [],
+    });
+  } catch (err) {
+    throw new Error(explainSmtpError(err, auth.user));
+  } finally {
+    transport.close();
   }
+}
+
+function explainSmtpError(err: unknown, user: string): string {
+  const { code, message } = (err ?? {}) as { code?: string; message?: string };
+  if (code === 'EAUTH') {
+    return `Gmail didn't accept the sign-in for ${user}: GMAIL_APP_PASSWORD must be an app password of that account, not its normal password.`;
+  }
+  if (code && ['ETIMEDOUT', 'ESOCKET', 'ECONNECTION', 'EDNS', 'ETLS'].includes(code)) {
+    return `Couldn't reach Gmail's mail server (${SMTP_HOST}:${SMTP_PORT}): ${message}. Railway allows outgoing SMTP only on its Pro plan.`;
+  }
+  return `Gmail couldn't send the email: ${message ?? String(err)}`;
 }

@@ -41,10 +41,10 @@ Variables live in Railway (service → Variables), never in the repo:
 
 | Variable | What it turns on |
 | --- | --- |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_ID` | Google Sign-In (the public OAuth client ID) |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google Sign-In (the public OAuth client ID) |
 | `AI_EMPLOYEES_API_KEY` | the live NDI AI Employees catalogue (without it, the bundled snapshot) |
 | `ANTHROPIC_API_KEY` | live company research |
-| `GOOGLE_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` | optional: "Send via email" (setup below) |
+| `GMAIL_USER`, `GMAIL_APP_PASSWORD` | optional: "Send via email" (setup below) |
 
 `NEXT_PUBLIC_GOOGLE_CLIENT_ID` is compiled into the browser code, so it only takes effect after a
 rebuild (Railway redeploys after every variable change).
@@ -116,10 +116,10 @@ Two integrations are real but need a credential only you can provide:
    browser print the report page `/print/[token]` with the print stylesheet in `globals.css`; see
    `src/lib/pdf.ts`. On Railway and locally that's Chromium on the same server; locally Chrome or
    Edge is found automatically, or set `CHROMIUM_PATH`. On Cloudflare it's Browser Rendering) and
-   "Send via email", which sends via the Gmail API as the Google account connected in the one-time
-   setup (`src/app/api/send-report/route.ts`, `src/lib/gmail.ts`). Needs `GOOGLE_CLIENT_ID`,
-   `GOOGLE_CLIENT_SECRET` and `GMAIL_REFRESH_TOKEN` — see "Send via email (Gmail API)" below. Without
-   them, that path honestly reports "not configured" instead of pretending to send.
+   "Send via email", which sends through Gmail's SMTP server from `GMAIL_USER`
+   (`src/app/api/send-report/route.ts`, `src/lib/gmail.ts`). Needs `GMAIL_USER` and
+   `GMAIL_APP_PASSWORD` — see "Send via email (Gmail SMTP)" below. Without them, that path honestly
+   reports "not configured" instead of pretending to send.
 
 ## NDI AI Employees
 
@@ -167,43 +167,26 @@ user's name/email/picture (from the Google ID token, decoded client-side — not
 Google's servers) for display in the header; it doesn't gate any part of the app, and there's no
 backend session.
 
-## Send via email (Gmail API)
+## Send via email (Gmail SMTP)
 
-Emailing the PDF uses the Gmail API (`gmail.send` scope) — chosen over SMTP because Cloudflare
-Workers has no reliable raw-socket SMTP support. Every email is sent from whichever Google account
-completes the consent flow below (no separate "from" address). One-time setup per deployment:
+Emailing the PDF goes through Gmail's SMTP server (`smtp.gmail.com`, port 465), signed in with an
+app password, and every email comes from that account's address (`src/lib/gmail.ts`). Setup:
 
-1. Reuses the same OAuth client as `NEXT_PUBLIC_GOOGLE_CLIENT_ID` above. In
-   [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials), open
-   that client and add the deployment's **Authorized redirect URI**:
-   - Railway: `https://outside-in-assessment-production.up.railway.app/api/oauth/gmail/callback`
-   - Cloudflare: `https://outside-in-assessment.new-digital-intelligence.workers.dev/api/oauth/gmail/callback`
-   - local testing: `http://localhost:3000/api/oauth/gmail/callback`
+1. On the sending Google account, turn on 2-Step Verification, then create an app password at
+   [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords). (A Google
+   Workspace admin can turn app passwords off for the organization.)
+2. Set `GMAIL_USER` to the account's address and `GMAIL_APP_PASSWORD` to the app password (Railway:
+   the service's variables; local: `.env.local`). Spaces in the app password don't matter.
 
-   Opening that address without a `code` shows the redirect URI the deployment sends Google, to
-   compare.
-2. In [APIs & Services → Library](https://console.cloud.google.com/apis/library), enable the
-   **Gmail API** on the same project.
-3. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` on the deployment (Railway: the service's
-   variables; Cloudflare: `wrangler secret put`; local: `.env.local`). The callback in step 5 needs
-   the secret, so let it go live first.
-4. Visit this URL, signed in as the account that should send the emails, and approve:
-   ```
-   https://accounts.google.com/o/oauth2/v2/auth?client_id=<GOOGLE_CLIENT_ID>&redirect_uri=<REDIRECT_URI>&response_type=code&scope=https://www.googleapis.com/auth/gmail.send&access_type=offline&prompt=consent
-   ```
-5. Google redirects to `/api/oauth/gmail/callback`, which exchanges the code and displays a
-   refresh token once. Copy it into `GMAIL_REFRESH_TOKEN` on the same deployment, then discard the
-   page — it isn't stored anywhere.
+An app password opens the whole mailbox, not just sending, so keep it only in the deployment's
+secrets. Changing the account's password revokes its app passwords; then create a new one.
 
-If the OAuth consent screen's audience is **External** and still in **Testing**, Google expires
-the refresh token after 7 days; publishing the app (**In production**) stops that. An **Internal**
-app keeps the token too, but limits Google Sign-In to accounts in its own Google Workspace, so
-don't switch to it if people outside the organization sign in. While the app isn't verified,
-Google warns "Google hasn't verified this app" on the Gmail consent screen; the sending account
-can continue past it under **Advanced**.
+SMTP needs a Node.js host: Railway allows outgoing SMTP only on its Pro plan and above, and
+Cloudflare Workers can't send it at all. If the mail server can't be reached, the send fails with
+an error that says so.
 
-Without all three of `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GMAIL_REFRESH_TOKEN`, the
-"send via email" switch fails with an honest "not configured" error.
+Without both `GMAIL_USER` and `GMAIL_APP_PASSWORD`, the "send via email" switch fails with an
+honest "not configured" error.
 
 ## Data model
 

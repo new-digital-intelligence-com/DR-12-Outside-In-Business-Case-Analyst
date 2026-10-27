@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error:
-          'Email delivery isn’t configured yet — set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and GMAIL_REFRESH_TOKEN to enable it.',
+          'Email delivery isn’t configured yet — set GMAIL_USER and GMAIL_APP_PASSWORD to enable it.',
       },
       { status: 501 },
     );
