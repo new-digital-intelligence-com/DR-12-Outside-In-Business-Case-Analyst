@@ -1,6 +1,6 @@
 {
-  "catalogVersion": "340a07771ef6ae30",
-  "checkedAt": "2026-10-26T21:59:46.989+00:00",
+  "catalogVersion": "22026ecbcd1aa475",
+  "checkedAt": "2026-11-12T17:33:13.021+00:00",
   "employees": [
     {
       "code": "FO-01",
@@ -475,7 +475,7 @@
       "code": "GP-12",
       "name": "Project Status Update Manager",
       "category": "General Process Assistants",
-      "tagline": "Status reports that write themselves from the project’s own chatter.",
+      "tagline": "Status reports that write themselves from the project's own chatter.",
       "videoUrl": "https://www.youtube.com/watch?v=ULwHdKyGYFM"
     },
     {
@@ -496,7 +496,7 @@
       "code": "GP-16",
       "name": "Field Engineer Support Assistant",
       "category": "General Process Assistants",
-      "tagline": "Expert support in the field engineer’s pocket.",
+      "tagline": "Expert support in the field engineer's pocket.",
       "videoUrl": null
     },
     {
@@ -531,7 +531,7 @@
       "code": "GP-21",
       "name": "IT Resource Provisioning Manager",
       "category": "General Process Assistants",
-      "tagline": "IT resources provisioned the moment they’re needed.",
+      "tagline": "IT resources provisioned the moment they're needed.",
       "videoUrl": "https://www.youtube.com/watch?v=xI1Mav_-HUY"
     },
     {
@@ -594,7 +594,7 @@
       "code": "DR-11",
       "name": "Company Org Chart Tracker",
       "category": "Data and Research Analysts",
-      "tagline": "Any company’s org chart, reconstructed from public signals.",
+      "tagline": "Any company's org chart, reconstructed from public signals.",
       "videoUrl": "https://www.youtube.com/watch?v=H0Hkujw2WOE"
     },
     {
@@ -608,7 +608,7 @@
       "code": "DR-13",
       "name": "Customer Care Quality Analyst",
       "category": "Data and Research Analysts",
-      "tagline": "Benchmark your own and competitors’ service channels.",
+      "tagline": "Benchmark your own and competitors' service channels.",
       "videoUrl": null
     },
     {
@@ -671,7 +671,7 @@
       "code": "KT-01",
       "name": "Corporate Knowledge Assistant",
       "category": "Knowledge, Training and Education Assistants",
-      "tagline": "A central knowledge assistant across channels using communication contents",
+      "tagline": "A central knowledge hub that answers staff questions instantly.",
       "videoUrl": null
     },
     {
