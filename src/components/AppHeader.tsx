@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/lib/AuthProvider';
 import GoogleSignInButton from './GoogleSignInButton';
+import { AssistantToggle } from './AssistantSidebar';
 
 export default function AppHeader() {
   const { session, signOut } = useAuth();
@@ -11,6 +12,7 @@ export default function AppHeader() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <span className="text-sm font-semibold text-slate-800">AI Opportunity Assessment</span>
         <div className="flex items-center gap-3">
+          <AssistantToggle />
           {session ? (
             <div className="flex items-center gap-2">
               {session.picture && (

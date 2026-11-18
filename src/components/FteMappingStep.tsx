@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FUNCTIONS } from '@/data/model';
 import type { FunctionAssumption, Parameters } from '@/lib/types';
 import { formatFte, formatPct } from '@/lib/format';
+import { publishFteDraft } from '@/lib/assistantStore';
 
 interface Props {
   assumptions: FunctionAssumption[];
@@ -17,6 +18,12 @@ export default function FteMappingStep({ assumptions, parameters, totalFte, onBa
   const [rows, setRows] = useState<FunctionAssumption[]>(assumptions);
   const [params, setParams] = useState<Parameters>(parameters);
   const [openL1, setOpenL1] = useState<Set<string>>(new Set(FUNCTIONS.map((f) => f.l1Code)));
+
+  // The assistant sees the mapping as it is being edited, before "Calculate business case".
+  useEffect(() => {
+    publishFteDraft({ rows, params });
+  }, [rows, params]);
+  useEffect(() => () => publishFteDraft(null), []);
 
   const byCode = useMemo(() => new Map(rows.map((r) => [r.l2Code, r])), [rows]);
   const grouped = useMemo(() => {

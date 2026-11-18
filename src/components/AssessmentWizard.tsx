@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { seedFunctionAssumptions, computeAssessment } from '@/lib/calc';
 import { DEFAULT_PARAMETERS } from '@/data/model';
 import type { CompanyInput, FunctionAssumption, Parameters, SavedCompany } from '@/lib/types';
@@ -9,6 +9,7 @@ import CompanyStep from '@/components/CompanyStep';
 import ResearchStep from '@/components/ResearchStep';
 import FteMappingStep from '@/components/FteMappingStep';
 import ResultsStep from '@/components/ResultsStep';
+import { publishAssessment } from '@/lib/assistantStore';
 
 const EMPTY_INPUT: CompanyInput = {
   companyName: '',
@@ -31,6 +32,12 @@ export default function AssessmentWizard() {
   const [savedPick, setSavedPick] = useState<SavedCompany | null>(null);
   const [assumptions, setAssumptions] = useState<FunctionAssumption[]>([]);
   const [parameters, setParameters] = useState<Parameters>(DEFAULT_PARAMETERS);
+
+  // The assistant sidebar answers questions about the assessment on screen.
+  useEffect(() => {
+    publishAssessment({ step, input, assumptions, parameters });
+  }, [step, input, assumptions, parameters]);
+  useEffect(() => () => publishAssessment(null), []);
 
   const result = useMemo(() => {
     if (step < 3 || assumptions.length === 0) return null;

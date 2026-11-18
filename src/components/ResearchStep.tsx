@@ -12,6 +12,7 @@ import type {
 import { L1_INDUSTRIES, SAMPLE_INPUT, segmentsForIndustry } from '@/data/model';
 import { effectiveTotalFte, totalFteCalculated } from '@/lib/calc';
 import { formatDate, formatEur, formatFte } from '@/lib/format';
+import { publishResearchDraft } from '@/lib/assistantStore';
 
 type Phase = 'choose' | 'loading' | 'candidates' | 'form';
 
@@ -91,6 +92,12 @@ export default function ResearchStep({
   const [savedMatches, setSavedMatches] = useState<SavedCompany[]>([]);
   const [loadingSaved, setLoadingSaved] = useState(savedPick !== null);
   const [elapsedMs, setElapsedMs] = useState(0);
+
+  // The assistant sees the figures as they are being edited, before the user continues.
+  useEffect(() => {
+    publishResearchDraft({ phase, form, source, candidates });
+  }, [phase, form, source, candidates]);
+  useEffect(() => () => publishResearchDraft(null), []);
 
   // Guards against a stale request (e.g. picking a candidate while an earlier request is still
   // in flight) applying its result after a newer one has already started.

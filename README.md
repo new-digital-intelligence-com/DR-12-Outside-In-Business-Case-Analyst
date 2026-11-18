@@ -25,6 +25,21 @@ npm run dev
 
 Then open http://localhost:3000.
 
+## Assistant sidebar
+
+Every page has an "Assessment assistant" panel (docked on the right on wide screens, a drawer
+opened with "Ask the assistant" on phones). It answers questions about the assessment on screen:
+the browser sends the wizard's state, and `POST /api/assistant` re-checks it and recomputes the
+business case with the app's own calculation before grounding the model on it, so it never trusts
+figures from the client. It is read-only: it explains numbers and steps, it cannot change figures,
+run research or send anything. Up to 3 files (PDF, image, text, CSV, JSON; 5 MB each, 8 MB total)
+can be attached to a question. Requests must come from the app's own pages and are limited to 20
+per minute per IP. Without `ANTHROPIC_API_KEY` the panel says it is not configured.
+`GET /api/assistant` reports whether it is configured and which model it uses (never the key).
+
+Code: `src/lib/assistant/` (handler, grounding, prompt, files, markdown), `src/app/api/assistant/`,
+`src/components/AssistantSidebar.tsx`. Tests: `npm test`.
+
 ## Live deployment
 
 The current production version runs on Railway:
@@ -43,7 +58,8 @@ Variables live in Railway (service → Variables), never in the repo:
 | --- | --- |
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google Sign-In (the public OAuth client ID) |
 | `AI_EMPLOYEES_API_KEY` | the live NDI AI Employees catalogue (without it, the bundled snapshot) |
-| `ANTHROPIC_API_KEY` | live company research |
+| `ANTHROPIC_API_KEY` | live company research and the assistant sidebar |
+| `ASSISTANT_MODEL` | optional: the sidebar's model (default `ANTHROPIC_MODEL`, then `claude-opus-5`) |
 | `GMAIL_USER`, `GMAIL_APP_PASSWORD` | optional: "Send via email" (setup below) |
 
 `NEXT_PUBLIC_GOOGLE_CLIENT_ID` is compiled into the browser code, so it only takes effect after a
